@@ -12,6 +12,7 @@
 
 ## 🔧 Improvements
 
+- Improved the positive/negative month counters in the benchmark comparison table: values now display as "X/Y" (e.g. "29/40" or "30/41") showing how many months out of the total observations were positive or negative — makes it immediately clear why the portfolio and benchmark totals can differ (the portfolio uses the first snapshot as a baseline and has one fewer return observation than the benchmark)
 - Improved Sharpe and Sortino ratio accuracy in the benchmark comparison table: ratios now use the arithmetic mean of ECB deposit facility rates over the exact evaluation period instead of the user's configured rate — a 5-year comparison now reflects the actual rate environment (which ranged from -0.50% in 2020 to +4.00% in 2023–2024) rather than applying today's rate retroactively. The dynamic footnote shows which rate was used and for how many months. The Sharpe ratio in the main KPI card is unchanged.
 - Improved periodic email summaries: income and expense breakdowns now show **all categories** (not just the top 3) with both the euro total and the percentage of the period total for each category — two separate tables ("Entrate per Categoria" and "Spese per Categoria") replace the previous single top-3 list
 - Improved AI narrative in periodic emails: paragraphs, bullet lists, numbered lists, italic text, and section headings now render with correct visual spacing — no more collapsed text or excessive gaps between sections

@@ -274,6 +274,7 @@ For pages that aggregate large collections (many snapshots + all expenses) on ev
 - When a derived value shown in a chart or table must match a KPI card exactly, pass the pre-computed figure as a prop from the page — do not recompute from chart data. The most common drift source is annualization denominator: chart return-point count = n−1, `metrics.numberOfMonths` = n. A 1-month difference produces ~0.4pp divergence at 14% TWR
 - De-annualize for "total growth": `(1 + TWR/100)^(months/12) − 1`. Compute in the page, pass as `portfolioTotalGrowth`
 - Applied in `BenchmarkComparisonChart` / `BenchmarkComparisonSection`
+- **Portfolio vs benchmark month count asymmetry**: `prepareMonthlyReturnsHeatmap` loops `i=1..N` over snapshots — the first snapshot is baseline only, so for a period of N calendar months the portfolio has N−1 return observations. Benchmark data from Yahoo Finance has a return for every calendar month including the first, so it has N observations. `Mesi+/-` for the portfolio can therefore never sum to `numberOfMonths`. Display "X/Y" format with the actual denominator (`returns.length`) to avoid user confusion. `totalMonths` field in `BenchmarkMetrics` = `returns.length` tracks this per row.
 
 ### Dashboard Data Isolation
 - Do not add `useAllExpenses` or other full-history queries to Overview/Dashboard

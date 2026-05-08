@@ -61,6 +61,9 @@ interface BenchmarkMetrics {
   worstMonth: number | null;
   positiveMonths: number;
   negativeMonths: number;
+  // Total months with return data — may differ from numberOfMonths because the
+  // portfolio baseline month generates no return observation.
+  totalMonths: number;
 }
 
 /**
@@ -268,6 +271,7 @@ function computeAllMetrics(
     worstMonth,
     positiveMonths: positive,
     negativeMonths: negative,
+    totalMonths: returns.length,
   };
 }
 
@@ -614,9 +618,11 @@ export function BenchmarkComparisonChart({
                 </td>
                 <td className="text-right py-2 px-2 tabular-nums text-green-600 dark:text-green-400">
                   {fmtInt(metricsSummary.portfolioMetrics.positiveMonths)}
+                  <span className="text-muted-foreground font-normal">/{fmtInt(metricsSummary.portfolioMetrics.totalMonths)}</span>
                 </td>
                 <td className="text-right py-2 pl-2 tabular-nums text-red-600 dark:text-red-400 hidden sm:table-cell">
                   {fmtInt(metricsSummary.portfolioMetrics.negativeMonths)}
+                  <span className="text-muted-foreground font-normal">/{fmtInt(metricsSummary.portfolioMetrics.totalMonths)}</span>
                 </td>
               </tr>
 
@@ -662,10 +668,10 @@ export function BenchmarkComparisonChart({
                       {m ? <span className={negColorClass(m.worstMonth)}>{fmtPct(m.worstMonth)}</span> : '–'}
                     </td>
                     <td className="text-right py-2 px-2 tabular-nums text-green-600 dark:text-green-400">
-                      {m ? fmtInt(m.positiveMonths) : '–'}
+                      {m ? <>{fmtInt(m.positiveMonths)}<span className="text-muted-foreground font-normal">/{fmtInt(m.totalMonths)}</span></> : '–'}
                     </td>
                     <td className="text-right py-2 pl-2 tabular-nums text-red-600 dark:text-red-400 hidden sm:table-cell">
-                      {m ? fmtInt(m.negativeMonths) : '–'}
+                      {m ? <>{fmtInt(m.negativeMonths)}<span className="text-muted-foreground font-normal">/{fmtInt(m.totalMonths)}</span></> : '–'}
                     </td>
                   </tr>
                 );
@@ -681,6 +687,7 @@ export function BenchmarkComparisonChart({
               ? ' Benchmark convertiti in EUR (tasso di cambio mensile USD/EUR, fonte: Frankfurter API).'
               : ' Rendimenti benchmark in USD (ETF quotati sul mercato americano).'}
             {' '}Volatilità, Sharpe e Max Drawdown del portafoglio sono cashflow-adjusted (metodo TWR).
+            {' '}Mesi +/- mostrati su totale mesi con rendimento disponibile: il portafoglio usa il primo snapshot come baseline (nessun rendimento per quel mese), i benchmark hanno un rendimento per ogni mese del periodo.
           </p>
         </div>
       )}
