@@ -71,6 +71,8 @@ import { CategoryDeleteConfirmDialog } from '@/components/expenses/CategoryDelet
 import { CategoryMoveDialog } from '@/components/expenses/CategoryMoveDialog';
 import { CreateDummySnapshotModal } from '@/components/CreateDummySnapshotModal';
 import { DeleteDummyDataDialog } from '@/components/DeleteDummyDataDialog';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { PageTabBar } from '@/components/layout/PageTabBar';
 
 interface SubTarget {
   name: string;
@@ -1411,7 +1413,7 @@ export default function SettingsPage() {
   const isValidTotal = Math.abs(total - 100) < 0.01;
 
   return (
-    <div className="space-y-4 sm:space-y-6 max-desktop:portrait:pb-20">
+    <PageContainer className="space-y-4 sm:space-y-6">
       {/* Page header — editorial zone with eyebrow + border separator */}
       <div className="flex flex-col gap-3 landscape:flex-row landscape:items-center landscape:justify-between border-b border-border pb-4">
         <div>
@@ -1452,51 +1454,12 @@ export default function SettingsPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        {/* Mobile/tablet: segmented pill — 1 tap, all options visible. Matches FIRE & Simulazioni pattern. */}
-        <div className="desktop:hidden mb-4">
-          <div role="tablist" className="inline-flex w-full rounded-lg border bg-muted p-1 gap-0.5">
-            {SETTINGS_TABS.map((tab) => {
-              const isActive = activeTab === tab.value;
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.value}
-                  role="tab"
-                  type="button"
-                  aria-selected={isActive}
-                  onClick={() => handleTabChange(tab.value)}
-                  className={cn(
-                    'relative flex flex-1 items-center justify-center gap-1 rounded-md px-1.5 py-2 text-xs font-medium transition-colors',
-                    isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
-                  )}
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="settings-tab-pill"
-                      className="absolute inset-0 rounded-md bg-background shadow-sm"
-                      transition={{ type: 'spring', stiffness: 400, damping: 35 }}
-                    />
-                  )}
-                  <Icon className="relative z-10 h-3.5 w-3.5 shrink-0" />
-                  <span className="relative z-10">{tab.shortLabel}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Desktop: standard TabsList driven by the same SETTINGS_TABS constant */}
-        <TabsList className="hidden desktop:grid desktop:grid-cols-5 w-full">
-          {SETTINGS_TABS.map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <TabsTrigger key={tab.value} value={tab.value} className="flex items-center gap-2">
-                <Icon className="h-4 w-4" />
-                {tab.label}
-              </TabsTrigger>
-            );
-          })}
-        </TabsList>
+        <PageTabBar
+          tabs={SETTINGS_TABS}
+          value={activeTab}
+          onValueChange={handleTabChange}
+          layoutId="settings-tab-pill"
+        />
 
         {/* Tab: Impostazioni Generali (lazy) */}
         {mountedTabs.has('generale') && (
@@ -3090,6 +3053,6 @@ export default function SettingsPage() {
           }}
         />
       )}
-    </div>
+    </PageContainer>
   );
 }

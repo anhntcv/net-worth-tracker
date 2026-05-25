@@ -42,17 +42,20 @@ import { getSettings } from '@/lib/services/assetAllocationService';
 import { authenticatedFetch } from '@/lib/utils/authFetch';
 import { tabPanelSwitch } from '@/lib/utils/motionVariants';
 import { toast } from 'sonner';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { PageTabBar } from '@/components/layout/PageTabBar';
+import type { TabDef } from '@/components/layout/PageTabBar';
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-// Module-level constant: stable reference for React Compiler
-const CASHFLOW_TABS_BASE: Array<{ value: string; label: string; mobileLabel: string; icon: React.ElementType }> = [
-  { value: 'tracking',     label: 'Tracciamento', mobileLabel: 'Spese',     icon: Receipt  },
-  { value: 'dividends',    label: 'Dividendi',    mobileLabel: 'Dividendi', icon: Coins    },
-  { value: 'analisi',      label: 'Analisi',      mobileLabel: 'Analisi',   icon: BarChart3 },
-  { value: 'budget',       label: 'Budget',       mobileLabel: 'Budget',    icon: Target   },
+const CASHFLOW_TABS_BASE: TabDef[] = [
+  { value: 'tracking',  label: 'Tracciamento', shortLabel: 'Spese',    icon: Receipt   },
+  { value: 'dividends', label: 'Dividendi',    shortLabel: 'Dividendi',icon: Coins     },
+  { value: 'analisi',   label: 'Analisi',      shortLabel: 'Analisi',  icon: BarChart3 },
+  { value: 'budget',    label: 'Budget',       shortLabel: 'Budget',   icon: Target    },
 ];
 
 export default function CashflowPage() {
@@ -162,78 +165,29 @@ export default function CashflowPage() {
     setMountedTabs(prev => new Set(prev).add(value));
   };
 
-  return (
-    <div className="space-y-6 max-desktop:portrait:pb-20">
-      {/* Header */}
-      <div className="border-b border-border pb-4">
-        <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Operatività</p>
-        <h1 className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">
-          Cashflow
-        </h1>
-        <p className="mt-2 text-muted-foreground">
-          Traccia e analizza le tue entrate e uscite nel tempo
-        </p>
-      </div>
+  const allTabs: TabDef[] = costCentersEnabled
+    ? [...CASHFLOW_TABS_BASE, { value: 'cost-centers', label: 'Centri di Costo', shortLabel: 'C.Costo', icon: Layers }]
+    : CASHFLOW_TABS_BASE;
 
-      {/* Tabs */}
+  return (
+    <PageContainer>
+      <PageHeader
+        label="Operatività"
+        title="Cashflow"
+        description="Traccia e analizza le tue entrate e uscite nel tempo"
+      />
+
       <Tabs defaultValue="tracking" value={activeTab} onValueChange={handleTabChange} className="w-full">
         {costCentersEnabled === null ? (
-          <div className="h-10 w-full rounded-md bg-muted animate-pulse mb-6" />
-        ) : (() => {
-          const allTabs = costCentersEnabled
-            ? [...CASHFLOW_TABS_BASE, { value: 'cost-centers', label: 'Centri di Costo', mobileLabel: 'C.Costo', icon: Layers }]
-            : CASHFLOW_TABS_BASE;
-          return (
-            <>
-              {/* Mobile (<desktop): Framer Motion sliding pill */}
-              <div className="desktop:hidden mb-6">
-                <div role="tablist" aria-label="Sezioni cashflow" className="flex rounded-xl bg-muted p-1 gap-1">
-                  {allTabs.map(({ value, mobileLabel, icon: Icon }) => (
-                    <button
-                      key={value}
-                      type="button"
-                      role="tab"
-                      aria-selected={activeTab === value}
-                      onClick={() => handleTabChange(value)}
-                      className={cn(
-                        'relative flex-1 flex items-center justify-center gap-1 h-9 rounded-lg text-xs font-medium',
-                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
-                        activeTab !== value && 'text-muted-foreground hover:text-foreground transition-colors duration-150'
-                      )}
-                    >
-                      {activeTab === value && (
-                        <motion.span
-                          layoutId="cashflow-mobile-tab"
-                          className="absolute inset-0 rounded-lg bg-card shadow-sm"
-                          transition={{ type: 'spring', stiffness: 400, damping: 35 }}
-                        />
-                      )}
-                      <span className={cn(
-                        'relative z-10 flex items-center gap-1',
-                        activeTab === value ? 'text-foreground' : 'text-muted-foreground'
-                      )}>
-                        <Icon className="h-3.5 w-3.5 shrink-0" />
-                        <span className="truncate">{mobileLabel}</span>
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Desktop (1440px+): standard tab list */}
-              <div className="hidden desktop:block mb-6">
-                <TabsList className="w-full justify-start">
-                  {allTabs.map(({ value, label, icon: Icon }) => (
-                    <TabsTrigger key={value} value={value} className="flex items-center gap-1.5">
-                      <Icon className="h-3.5 w-3.5" />
-                      {label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </div>
-            </>
-          );
-        })()}
+          <div className="h-10 w-full rounded-md bg-muted animate-pulse mb-4" />
+        ) : (
+          <PageTabBar
+            tabs={allTabs}
+            value={activeTab}
+            onValueChange={handleTabChange}
+            layoutId="cashflow-mobile-tab"
+          />
+        )}
 
         <TabsContent value="tracking" forceMount>
           <motion.div
@@ -313,6 +267,6 @@ export default function CashflowPage() {
           </TabsContent>
         )}
       </Tabs>
-    </div>
+    </PageContainer>
   );
 }
