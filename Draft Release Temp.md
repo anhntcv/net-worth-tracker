@@ -8,5 +8,6 @@
 
 ## 🔧 Improvements
 
+- The **Overview "Sintesi Patrimoniale" card** no longer shows a redundant large number at the top. The card now reads as a clean financial statement — asset breakdown flows naturally into the fiscal impact section, with "Pat. Netto Totale" as the clear bottom-line conclusion
 - Transaction list amounts in the Cashflow Sankey drill-down now use design system color tokens instead of hardcoded hex values — positive amounts in green, negative in red, both correctly adapted to all six color themes and dark mode
 - Links in the Sankey transaction detail now use the `primary` color token instead of a hardcoded blue, staying consistent with the rest of the app
