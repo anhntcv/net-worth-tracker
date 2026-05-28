@@ -234,6 +234,7 @@ For architecture and current product status, see [CLAUDE.md](CLAUDE.md).
 ### Shared Constants
 - Italian month names: `MONTH_NAMES` from `lib/constants/months.ts` — do not redeclare inline
 - Hall of Fame section labels and key arrays: `SECTION_LABELS`, `MONTHLY_SECTION_KEYS`, `YEARLY_SECTION_KEYS` from `lib/constants/hallOfFame.ts`
+- Dividend type labels and badge Tailwind classes: `dividendTypeLabels`, `dividendTypeBadgeColor` from `lib/constants/dividendTypes.ts`. Both maps include full dark: variants. Previously duplicated in `DividendTable`, `DividendDetailsDialog`, `DividendTrackingTab` with the detail dialog missing dark: variants (silent dark-mode regression). **Rule of Three applied**: any map used in 3+ files must live in a shared constant.
 
 ### Firestore Pre-Computed Cache Pattern
 For pages that aggregate large collections (many snapshots + all expenses) on every load, store pre-computed results in a dedicated Firestore collection rather than re-reading and re-calculating each visit.
@@ -403,6 +404,10 @@ For pages that aggregate large collections (many snapshots + all expenses) on ev
 - A visual progress bar (`<div>` animated with Framer Motion) has no semantic meaning to screen readers. Always add `role="progressbar"`, `aria-valuenow={Math.round(value)}`, `aria-valuemin={0}`, `aria-valuemax={100}`, and `aria-label` describing what is being measured.
 
 ### Accessibility Patterns
+- **Calendar grid ARIA structure**: a 7-column calendar grid requires explicit ARIA roles — not just visual CSS grid. Pattern: outer container `role="grid" aria-label="Calendario pagamenti dividendi"`; header row `role="row"` with each day cell `role="columnheader" aria-label={fullDayName}`; each of the 6 week rows as `role="row"` (flat 42-cell array must be sliced: `Array.from({ length: 6 }, (_, i) => cells.slice(i*7, i*7+7))`); each date cell `role="gridcell"`. Using CSS `grid-cols-7` alone creates no navigable structure — the DOM rows must exist as elements. Applied in `DividendCalendar.tsx`.
+- **`role="gridcell"` on `<button>`**: acceptable for calendar cells. Overrides the implicit `button` role. Modern screen readers (NVDA, VoiceOver, JAWS) treat it as an activatable gridcell. Wrapping in `<div role="gridcell"><button>` is the strictly correct approach but adds DOM complexity with no practical AT benefit. Use the `<button role="gridcell">` pattern only when the button IS the full cell content.
+- **`aria-label` for calendar cells must be built in the parent**: the parent calendar component has `getDividendsForDate(date)` already computed for each cell. Pass the result as `ariaLabel: string` prop to the cell — do not re-derive it inside the cell. Format: `"${day} ${monthName} ${year}${dividends.length > 0 ? ' — N pagamenti' : ''}"`. The prop is non-optional (string, not string | undefined) to force the call-site to always supply it.
+- **Custom tooltip with `aria-expanded`**: any toggle-button that shows/hides a panel must have `aria-expanded={isOpen}` and `aria-haspopup="true"`. Add a `keydown` handler for Escape on the document (not just the button) — Escape is a global dismiss shortcut for tooltips/popups and screen reader users expect it. Pattern: add/remove the listener inside `useEffect([isOpen])`, remove on cleanup. Applied in `MetricInfoTooltip` in `DividendStats.tsx`.
 - **`aria-live` on streaming content**: any region that receives dynamically injected text (SSE streams, polling) must have `aria-live="polite"` and `aria-atomic="false"` on its container so screen readers announce content as it arrives. Use `aria-label` to give the region a name (e.g. `aria-label="Conversazione con l'assistente"`).
 - **Action buttons hidden with `opacity-0` are inaccessible on both keyboard and touch**: `opacity-0 group-hover:opacity-100` makes controls unreachable from keyboard (focus lands on invisible buttons) and invisible on touch (no hover state). Fix: use `[@media(pointer:fine)]:opacity-0 [@media(pointer:fine)]:group-hover:opacity-100 [@media(pointer:fine)]:group-focus-within:opacity-100` — actions remain always visible on touch devices and become visible on keyboard focus. Tailwind v4 JIT supports arbitrary `@media` variants.
 - **Tab pattern without ARIA**: `<button>` elements styled as tabs must have `role="tab"`, `aria-selected`, and a `role="tablist"` wrapper to be announced correctly by screen readers.
@@ -437,6 +442,11 @@ For pages that aggregate large collections (many snapshots + all expenses) on ev
 - **Admin SDK auth gap**: always verify Firebase ID token server-side; Admin SDK bypasses Firestore rules
 - **Radix Select runtime error**: never use empty string as value — use sentinels `__all__`, `__none__`, `__create_new__`
 - **Radix Tabs forceMount gap** (blank space on hidden panel): add `data-[state=inactive]:hidden` to `TabsContent` in `components/ui/tabs.tsx`
+
+### Duplicate Badge/Label Maps — Silent Dark Mode Regression
+- When a `Record<Type, string>` map (labels, badge Tailwind classes) is copied across 3+ files, the copies drift. The canonical symptom: one copy is missing dark: variant classes that the others have — badges in that one component show near-white backgrounds in dark mode, making text illegible, but TypeScript compiles without error because the type signature matches.
+- **Fix**: move the map to `lib/constants/<domain>.ts` on first duplication (Rule of Three). If a copy already exists without dark: variants, audit ALL copies and reconcile before centralising.
+- Applied: `dividendTypeBadgeColor` (3 files → `lib/constants/dividendTypes.ts`). `DividendDetailsDialog` had no dark: variants; `DividendTable` had them; silently diverged.
 
 ### Skeleton as Dead Code — Loading State Silent Failure
 - Skeleton exists but page shows blank flash: the skeleton was never imported — `if (loading) return null` is still in place. TypeScript does not catch unused components. After writing a skeleton, verify it's wired up in the page

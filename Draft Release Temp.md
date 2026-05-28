@@ -21,6 +21,13 @@
 
 ## 🔧 Improvements
 
+- **Dividends — delete confirmation is now inline**: deleting a dividend record no longer opens a browser confirmation dialog. Click "Delete" once to arm (the button turns red and shows "Conferma"), then click again within 3 seconds to confirm. Click anywhere else or wait 3 seconds to cancel. Consistent with the delete pattern used in Cashflow and Portfolio
+- **Dividends — "Download All" confirmation is now an in-app dialog**: the "Scarica Tutti (Manuale)" button now opens a styled confirmation dialog instead of a native browser alert, showing the number of assets that will be scraped before proceeding
+- **Dividends — calendar cells announce date and payment count to screen readers**: the dividend calendar grid now has full ARIA structure (`role="grid"`, `role="row"`, `role="gridcell"`) so screen readers can navigate it as a table. Each day cell announces its full date (e.g. "15 Maggio 2026 — 2 pagamenti") instead of just the day number
+- **Dividends — today's date marker respects the active color theme**: the ring around today's date in the dividend calendar now uses the app's primary color instead of a fixed blue, so it stays consistent across all six themes
+- **Dividends — bar and line charts follow the active theme**: the "Dividendi per Anno" bar chart and "Reddito Mensile" line chart now use theme-aware colors instead of hardcoded greens, reds, and blues that clashed with non-default themes (especially Cyberpunk and Solar Dusk)
+- **Dividends — type badges display correctly in dark mode**: dividend type badges (Ordinario, Cedola, Straordinario, etc.) in the calendar date popup now show correctly in dark mode — the background and text were previously near-white in dark themes due to missing dark-mode Tailwind variants
+
 - **Expense type descriptions reworded** — the creation dialog now frames Fixed and Variable expenses as a complementary pair: Fixed expenses are described as "things you can't do without"; Variable expenses as "extras you could do without". The contrast makes it immediately clear how to categorize a new transaction
 - **Allocation columns now stay aligned across cards** — the Corrente / Target / Differenza / Azione columns previously shifted horizontally depending on the longest subcategory name in each card (e.g. "ETF Obbligazionari a Breve Termine" widened the first column, pushing the others). All tables now lock to the same column proportions regardless of content length
 - **Asset class names cleaned up** — the Allocation page no longer shows English terms in parentheses (e.g. "Azioni (Equity)" → "Azioni", "Obbligazioni (Bonds)" → "Obbligazioni"). The page is fully in Italian now
