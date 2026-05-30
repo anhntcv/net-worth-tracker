@@ -506,9 +506,9 @@ export function ExpenseTable({ expenses, onEdit, onRefresh, isDemo = false }: Ex
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center text-primary hover:text-primary/70 transition-colors"
-                    title="Apri link"
+                    aria-label="Apri link esterno"
                   >
-                    <ExternalLink className="h-4 w-4" />
+                    <ExternalLink className="h-4 w-4" aria-hidden="true" />
                   </a>
                 )}
               </TableCell>

@@ -349,6 +349,7 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
     setSelectedSubCategoryId('all');
     setSearchQuery('');
     setSelectedAccountId('all');
+    setMobileSortKey('date-desc');
   };
 
   // A filter is "active" (non-default) if period ≠ current month or any taxonomy filter is set.
@@ -390,7 +391,7 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
    * Semicolon delimiter is standard in Italian Excel. BOM ensures UTF-8 recognition.
    */
   const handleExportCSV = () => {
-    const headers = ['Data', 'Tipo', 'Categoria', 'Sottocategoria', 'Importo (€)', 'Note', 'Link'];
+    const headers = ['Data', 'Tipo', 'Categoria', 'Sottocategoria', 'Importo (\u20ac)', 'Note', 'Conto', 'Link'];
     const rows = filteredExpenses.map(e => [
       format(getExpenseDate(e.date), 'dd/MM/yyyy'),
       EXPENSE_TYPE_LABELS[e.type] || e.type,
@@ -398,6 +399,7 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
       e.subCategoryName || '',
       e.amount.toFixed(2).replace('.', ','),
       e.notes || '',
+      (e.linkedCashAssetId ? (assetNameMap.get(e.linkedCashAssetId) ?? '') : ''),
       e.link || '',
     ]);
     const csvContent = [headers, ...rows]
@@ -408,8 +410,11 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
     const a = document.createElement('a');
     a.href = url;
     a.download = `cashflow-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+    toast.success('Export completato');
   };
 
   const handleEditExpense = (expense: Expense) => {
@@ -605,6 +610,14 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
       name: assetNameMap.get(id) ?? id,
     }));
   }, [expenses, assetNameMap]);
+
+  // Auto-reset account filter when the selected account is no longer present in the
+  // current period (e.g. user changed period to a month with no transactions for that account).
+  useEffect(() => {
+    if (selectedAccountId !== 'all' && !accountOptions.some(a => a.id === selectedAccountId)) {
+      setSelectedAccountId('all');
+    }
+  }, [accountOptions, selectedAccountId]);
 
   /**
    * Cumulative AND filtering (progressive narrowing)
@@ -810,7 +823,7 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
           <Input
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            placeholder="Cerca nelle note..."
+            placeholder="Cerca note, categorie..."
             className="h-9 pl-8 pr-8 text-sm"
             aria-label="Cerca nelle note, categoria o sottocategoria"
           />
