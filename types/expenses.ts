@@ -54,7 +54,7 @@ export interface Expense {
   categoryName: string; // Denormalized for faster queries
   subCategoryId?: string;
   subCategoryName?: string; // Denormalized for faster queries
-  amount: number; // Sign convention: POSITIVE for income, NEGATIVE for expenses/debts
+  amount: number; // Sign convention: POSITIVE for income, NEGATIVE for expenses/debts, POSITIVE for transfers (direction encoded by origin/destination asset IDs)
   currency: string;
   date: Date | Timestamp;
   notes?: string;

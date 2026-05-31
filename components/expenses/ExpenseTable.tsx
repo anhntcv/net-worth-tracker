@@ -609,8 +609,11 @@ export function ExpenseTable({ expenses, onEdit, onRefresh, isDemo = false, hasA
             {(deleteDialog.mode === 'installment' || deleteDialog.mode === 'recurring') && (
               <Button
                 variant="outline"
-                onClick={() => {
-                  if (deleteDialog.expense) void deleteSingleExpense(deleteDialog.expense);
+                disabled={!!deletingId}
+                onClick={async () => {
+                  if (deleteDialog.expense) {
+                    await deleteSingleExpense(deleteDialog.expense);
+                  }
                   setDeleteDialog({ open: false, expense: null, mode: null });
                 }}
               >
@@ -619,15 +622,17 @@ export function ExpenseTable({ expenses, onEdit, onRefresh, isDemo = false, hasA
             )}
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => {
+              disabled={!!deletingId}
+              onClick={async (e) => {
+                e.preventDefault(); // Prevent AlertDialog from auto-closing
                 const exp = deleteDialog.expense;
                 if (!exp) return;
                 if (deleteDialog.mode === 'installment' && exp.installmentParentId) {
-                  void deleteAllInstallmentExpenses(exp.installmentParentId);
+                  await deleteAllInstallmentExpenses(exp.installmentParentId);
                 } else if (deleteDialog.mode === 'recurring' && exp.recurringParentId) {
-                  void deleteAllRecurringExpenses(exp.recurringParentId);
+                  await deleteAllRecurringExpenses(exp.recurringParentId);
                 } else {
-                  void deleteSingleExpense(exp);
+                  await deleteSingleExpense(exp);
                 }
                 setDeleteDialog({ open: false, expense: null, mode: null });
               }}

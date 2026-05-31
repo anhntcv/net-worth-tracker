@@ -16,7 +16,7 @@
  * All form logic, Zod schema, and submission paths are preserved unchanged.
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -33,7 +33,13 @@ import { CostCenter } from '@/types/costCenters';
 import { getCostCenters } from '@/lib/services/costCenterService';
 import { Asset } from '@/types/assets';
 import { createExpense, updateExpense } from '@/lib/services/expenseService';
-import { getAllAssets, updateCashAssetBalance } from '@/lib/services/assetService';
+import { getAllAssets } from '@/lib/services/assetService';
+import {
+  reconcileTransferEdit,
+  reconcileTransferCreate,
+  reconcileSingleEdit,
+  reconcileSingleCreate,
+} from '@/lib/services/cashBalanceReconciliation';
 import { getSettings } from '@/lib/services/assetAllocationService';
 import { getAllCategories, ensureTransferCategory } from '@/lib/services/expenseCategoryService';
 import { queryKeys } from '@/lib/query/queryKeys';
@@ -947,6 +953,7 @@ export function ExpenseDialog({ open, onClose, expense, onSuccess }: Readonly<Ex
   useEffect(() => {
     if (!open) return;
     setAdvancedOpen(isAdvancedPrePopulated(expense));
+    transferCategoryIdRef.current = null; // Reset transfer category cache on dialog open
   }, [open, expense]);
 
   useEffect(() => {
@@ -963,16 +970,26 @@ export function ExpenseDialog({ open, onClose, expense, onSuccess }: Readonly<Ex
     }
   }, [selectedCategoryId, expense, setValue]);
 
-  // Auto-set transfer category when type changes to 'transfer'
+  // Auto-set transfer category when type changes to 'transfer'.
+  // Guard with a ref to avoid re-fetching if the user toggles type back and forth.
+  const transferCategoryIdRef = useRef<string | null>(null);
   useEffect(() => {
     if (selectedType === 'transfer' && user && open && !isEdit) {
+      if (transferCategoryIdRef.current) {
+        // Already fetched in this dialog session — reuse cached ID
+        setValue('categoryId', transferCategoryIdRef.current);
+        return;
+      }
       ensureTransferCategory(user.uid).then((catId) => {
+        transferCategoryIdRef.current = catId;
         setValue('categoryId', catId);
-        // Refresh categories list so it includes the transfer category
-        loadCategories();
+        // Only refresh if the category list doesn't already contain the transfer category
+        if (!categories.some(c => c.id === catId)) {
+          loadCategories();
+        }
       }).catch(console.error);
     }
-  }, [selectedType, user, open, isEdit, setValue]);
+  }, [selectedType, user, open, isEdit, setValue, categories]);
 
   const loadCategories = async () => {
     if (!user) return;
@@ -1194,66 +1211,26 @@ export function ExpenseDialog({ open, onClose, expense, onSuccess }: Readonly<Ex
         let assetUpdated = false;
 
         if (data.type === 'transfer') {
-          // Transfer edit: reconcile both origin (linkedCashAssetId) and destination (transferCashAssetId)
-          const oldOriginId = expense.linkedCashAssetId;
-          const oldDestId = expense.transferCashAssetId;
-          const newOriginId = linkedCashAssetId;
-          const newDestId = transferCashAssetId;
-          const oldAmount = Math.abs(expense.amount);
-          const newAmount = Math.abs(data.amount);
-
-          // Reverse old origin debit
-          if (oldOriginId) {
-            await updateCashAssetBalance(oldOriginId, oldAmount); // add back what was debited
-            assetUpdated = true;
-          }
-          // Reverse old destination credit
-          if (oldDestId) {
-            await updateCashAssetBalance(oldDestId, -oldAmount); // remove what was credited
-            assetUpdated = true;
-          }
-          // Apply new origin debit
-          if (newOriginId) {
-            await updateCashAssetBalance(newOriginId, -newAmount);
-            assetUpdated = true;
-          }
-          // Apply new destination credit
-          if (newDestId) {
-            await updateCashAssetBalance(newDestId, newAmount);
-            assetUpdated = true;
-          }
+          assetUpdated = await reconcileTransferEdit({
+            oldOriginId: expense.linkedCashAssetId,
+            oldDestId: expense.transferCashAssetId,
+            newOriginId: linkedCashAssetId,
+            newDestId: transferCashAssetId,
+            oldAmount: Math.abs(expense.amount),
+            newAmount: Math.abs(data.amount),
+          });
         } else {
-          // Non-transfer edit: existing reconciliation logic
-          const oldLinkedAssetId = expense.linkedCashAssetId;
-          const newLinkedAssetId = linkedCashAssetId;
-          const oldSignedAmount = expense.amount;
-          const newSignedAmount =
-            data.type === 'income' ? Math.abs(data.amount) : -Math.abs(data.amount);
-
-          if (
-            oldLinkedAssetId &&
-            newLinkedAssetId &&
-            oldLinkedAssetId === newLinkedAssetId
-          ) {
-            const delta = newSignedAmount - oldSignedAmount;
-            if (Math.abs(delta) > 0.001) {
-              await updateCashAssetBalance(oldLinkedAssetId, delta);
-              assetUpdated = true;
-            }
-          } else {
-            if (oldLinkedAssetId) {
-              await updateCashAssetBalance(oldLinkedAssetId, -oldSignedAmount);
-              assetUpdated = true;
-            }
-            if (newLinkedAssetId) {
-              await updateCashAssetBalance(newLinkedAssetId, newSignedAmount);
-              assetUpdated = true;
-            }
-          }
+          assetUpdated = await reconcileSingleEdit({
+            oldLinkedAssetId: expense.linkedCashAssetId,
+            newLinkedAssetId: linkedCashAssetId,
+            oldSignedAmount: expense.amount,
+            newSignedAmount: data.type === 'income' ? Math.abs(data.amount) : -Math.abs(data.amount),
+          });
         }
 
         if (assetUpdated) {
           queryClient.invalidateQueries({ queryKey: queryKeys.assets.all(user.uid) });
+          queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.overview(user.uid) });
         }
       } else {
         const result = await createExpense(
@@ -1280,16 +1257,14 @@ export function ExpenseDialog({ open, onClose, expense, onSuccess }: Readonly<Ex
         }
 
         if (data.type === 'transfer') {
-          // Transfer: debit origin, credit destination
-          const amount = Math.abs(data.amount);
-          if (linkedCashAssetId) {
-            await updateCashAssetBalance(linkedCashAssetId, -amount);
-          }
-          if (transferCashAssetId) {
-            await updateCashAssetBalance(transferCashAssetId, amount);
-          }
-          if (linkedCashAssetId || transferCashAssetId) {
+          const transferUpdated = await reconcileTransferCreate({
+            originId: linkedCashAssetId,
+            destId: transferCashAssetId,
+            amount: Math.abs(data.amount),
+          });
+          if (transferUpdated) {
             queryClient.invalidateQueries({ queryKey: queryKeys.assets.all(user.uid) });
+            queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.overview(user.uid) });
           }
         } else if (linkedCashAssetId) {
           let firstSignedAmount: number;
@@ -1320,8 +1295,9 @@ export function ExpenseDialog({ open, onClose, expense, onSuccess }: Readonly<Ex
               data.type === 'income' ? Math.abs(data.amount) : -Math.abs(data.amount);
           }
 
-          await updateCashAssetBalance(linkedCashAssetId, firstSignedAmount);
+          await reconcileSingleCreate({ linkedAssetId: linkedCashAssetId, signedAmount: firstSignedAmount });
           queryClient.invalidateQueries({ queryKey: queryKeys.assets.all(user.uid) });
+          queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.overview(user.uid) });
         }
       }
 

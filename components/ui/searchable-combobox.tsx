@@ -103,6 +103,7 @@ export function SearchableCombobox({
 
   const handleCreate = () => {
     const name = searchQuery.trim();
+    if (!name) return;
     setIsDropdownOpen(false);
     setSearchQuery('');
     setIsFocused(false);

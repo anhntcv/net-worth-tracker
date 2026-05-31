@@ -1,13 +1,33 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import * as icons from 'lucide-react';
+import { useState, useMemo, lazy, Suspense } from 'react';
 import { Tag, X } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CATEGORY_ICONS, CATEGORY_ICON_NAMES } from '@/lib/constants/categoryIcons';
 import { cn } from '@/lib/utils';
+import type { LucideProps } from 'lucide-react';
+
+/**
+ * Dynamically resolve a Lucide icon component by name from the curated set.
+ * Uses `React.lazy` with named exports to avoid importing all ~1500 icons.
+ * Returns null for unknown icon names.
+ */
+const iconCache = new Map<string, React.LazyExoticComponent<React.ComponentType<LucideProps>>>();
+
+function getLazyIcon(name: string): React.LazyExoticComponent<React.ComponentType<LucideProps>> | null {
+  if (!CATEGORY_ICONS[name]) return null;
+  if (iconCache.has(name)) return iconCache.get(name)!;
+  const LazyIcon = lazy(() =>
+    import('lucide-react').then((mod) => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      default: (mod as any)[name] as React.ComponentType<LucideProps>,
+    }))
+  );
+  iconCache.set(name, LazyIcon);
+  return LazyIcon;
+}
 
 interface IconPickerPopoverProps {
   value?: string;
@@ -44,9 +64,7 @@ export function IconPickerPopover({
   }, [search]);
 
   // Resolve the currently selected icon component for the trigger preview.
-  const SelectedIcon = value
-    ? (icons[value as keyof typeof icons] as React.ElementType | undefined)
-    : undefined;
+  const SelectedIcon = value ? getLazyIcon(value) : null;
 
   const currentLabel = value ? (CATEGORY_ICONS[value] ?? value) : 'Nessuna icona';
   const triggerLabel =
@@ -75,7 +93,9 @@ export function IconPickerPopover({
           title={currentLabel}
         >
           {SelectedIcon ? (
-            <SelectedIcon className="h-4 w-4" aria-hidden="true" />
+            <Suspense fallback={<Tag className="h-4 w-4 text-muted-foreground" aria-hidden="true" />}>
+              <SelectedIcon className="h-4 w-4" aria-hidden="true" />
+            </Suspense>
           ) : (
             <Tag className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           )}
@@ -104,8 +124,8 @@ export function IconPickerPopover({
             aria-label="Seleziona icona categoria"
           >
             {filteredIcons.map((iconName) => {
-              const IconComponent = icons[iconName as keyof typeof icons] as React.ElementType | undefined;
-              if (!IconComponent) return null;
+              const LazyIconComponent = getLazyIcon(iconName);
+              if (!LazyIconComponent) return null;
               const label = CATEGORY_ICONS[iconName] ?? iconName;
               const isSelected = value === iconName;
               return (
@@ -125,7 +145,9 @@ export function IconPickerPopover({
                       : 'hover:bg-muted text-muted-foreground hover:text-foreground'
                   )}
                 >
-                  <IconComponent className="h-4 w-4" aria-hidden="true" />
+                  <Suspense fallback={<div className="h-4 w-4" />}>
+                    <LazyIconComponent className="h-4 w-4" aria-hidden="true" />
+                  </Suspense>
                 </button>
               );
             })}
