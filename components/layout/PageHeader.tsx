@@ -24,27 +24,25 @@ export function PageHeader({
 }: PageHeaderProps) {
   return (
     <div className={cn(!separator && '-mb-0', className)}>
-      {/* Mobile sticky navbar. Title sits at the bottom (items-end pb-2) to minimise
-          the visual gap between it and the description text below. */}
-      <div className="sticky top-0 z-20 -mx-4 px-4 h-14 flex items-end pb-2 justify-between bg-background/95 backdrop-blur-sm desktop:hidden">
-        <h1 className="text-[17px] font-semibold tracking-tight truncate min-w-0">{title}</h1>
-        {actions && (
-          <div className="flex shrink-0 items-center gap-1.5 ml-2">{actions}</div>
+      {/* Mobile sticky navbar — title + description in one block so the header
+          feels like a unified navbar. When separator=false the negative bottom
+          margin eats the parent space-y gap, making the tab bar flush. */}
+      <div
+        className={cn(
+          'sticky top-0 z-20 -mx-4 px-4 pt-1 pb-2 flex flex-col bg-background/95 backdrop-blur-sm desktop:hidden',
+          separator && 'border-b border-border pb-3',
+        )}
+      >
+        <div className="flex items-center justify-between">
+          <h1 className="text-[17px] font-semibold tracking-tight truncate min-w-0">{title}</h1>
+          {actions && (
+            <div className="flex shrink-0 items-center gap-1.5 ml-2">{actions}</div>
+          )}
+        </div>
+        {description && (
+          <p className="text-sm text-muted-foreground leading-tight">{description}</p>
         )}
       </div>
-
-      {/* Mobile description — sits tight below the sticky bar.
-          Border-b only when no tab bar follows (separator=true). */}
-      {description && (
-        <p
-          className={cn(
-            'desktop:hidden mt-1 text-sm text-muted-foreground',
-            separator && 'pb-3 border-b border-border',
-          )}
-        >
-          {description}
-        </p>
-      )}
 
       {/* Desktop: original full header */}
       <div

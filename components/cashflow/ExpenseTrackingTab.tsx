@@ -666,8 +666,6 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
         onLoadMore={() => setMobileShowCount(prev => prev + 20)}
         mobileSortKey={mobileSortKey}
         onSortChange={setMobileSortKey}
-        expandedRowId={expandedRowId}
-        onToggleExpand={handleToggleExpand}
         onEdit={handleEditExpense}
         onDelete={handleDeleteExpense}
         pendingDeleteId={pendingDeleteId}
