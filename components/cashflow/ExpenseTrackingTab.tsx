@@ -201,6 +201,7 @@ function MobileExpenseRow({
                 size="sm"
                 onClick={() => onEdit(expense)}
                 disabled={isDemo}
+                aria-label={isDemo ? 'Modifica — non disponibile in modalità demo' : 'Modifica voce'}
                 title={isDemo ? 'Non disponibile in modalità demo' : undefined}
                 className="flex-1 h-9"
               >
@@ -213,6 +214,7 @@ function MobileExpenseRow({
                 size="sm"
                 onClick={() => onDelete(expense)}
                 disabled={isDemo}
+                aria-label={isDemo ? 'Elimina — non disponibile in modalità demo' : 'Elimina voce'}
                 title={isDemo ? 'Non disponibile in modalità demo' : undefined}
                 className="flex-1 h-9"
               >
@@ -432,6 +434,23 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
     await onRefresh();
   };
 
+  const deleteSingleExpense = useCallback(async (expense: Expense) => {
+    try {
+      // Reverse the balance effect on the linked cash asset before deleting
+      if (expense.linkedCashAssetId) {
+        await updateCashAssetBalance(expense.linkedCashAssetId, -expense.amount);
+        if (user) queryClient.invalidateQueries({ queryKey: queryKeys.assets.all(user.uid) });
+      }
+      const { deleteExpense } = await import('@/lib/services/expenseService');
+      await deleteExpense(expense.id);
+      toast.success('Voce eliminata con successo');
+      await onRefresh();
+    } catch (error) {
+      console.error('Error deleting expense:', error);
+      toast.error("Errore nell'eliminazione della voce");
+    }
+  }, [user, queryClient, onRefresh]);
+
   /**
    * 2-click inline delete: first click arms the button (3s disarm timer),
    * second click executes. For installments/recurring, opens AlertDialog
@@ -462,24 +481,7 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
         setPendingDeleteId(null);
       }, 3000);
     }
-  }, [pendingDeleteId]);
-
-  const deleteSingleExpense = async (expense: Expense) => {
-    try {
-      // Reverse the balance effect on the linked cash asset before deleting
-      if (expense.linkedCashAssetId) {
-        await updateCashAssetBalance(expense.linkedCashAssetId, -expense.amount);
-        if (user) queryClient.invalidateQueries({ queryKey: queryKeys.assets.all(user.uid) });
-      }
-      const { deleteExpense } = await import('@/lib/services/expenseService');
-      await deleteExpense(expense.id);
-      toast.success('Voce eliminata con successo');
-      await onRefresh();
-    } catch (error) {
-      console.error('Error deleting expense:', error);
-      toast.error("Errore nell'eliminazione della voce");
-    }
-  };
+  }, [pendingDeleteId, deleteSingleExpense]);
 
   const deleteAllRecurringExpenses = async (recurringParentId: string) => {
     try {
@@ -1117,6 +1119,7 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
                 size="sm"
                 onClick={handleAddExpense}
                 disabled={isDemo}
+                aria-label={isDemo ? 'Aggiungi — non disponibile in modalit\u00e0 demo' : 'Aggiungi voce'}
                 title={isDemo ? 'Non disponibile in modalit\u00e0 demo' : undefined}
                 className="desktop:hidden flex-shrink-0 h-9"
               >
