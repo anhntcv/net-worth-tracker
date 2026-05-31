@@ -34,6 +34,8 @@ interface IconPickerPopoverProps {
   onChange: (icon: string | undefined) => void;
   /** aria-label for the trigger button */
   triggerAriaLabel?: string;
+  /** Additional class names for the trigger button (e.g. compact sizing) */
+  triggerClassName?: string;
 }
 
 /**
@@ -50,6 +52,7 @@ export function IconPickerPopover({
   value,
   onChange,
   triggerAriaLabel,
+  triggerClassName,
 }: Readonly<IconPickerPopoverProps>) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -88,7 +91,7 @@ export function IconPickerPopover({
         <Button
           type="button"
           variant="outline"
-          className="h-10 w-10 p-0 flex-shrink-0"
+          className={cn("h-10 w-10 p-0 flex-shrink-0", triggerClassName)}
           aria-label={triggerLabel}
           title={currentLabel}
         >

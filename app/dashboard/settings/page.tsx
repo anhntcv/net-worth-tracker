@@ -29,7 +29,7 @@
 
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDemoMode } from '@/lib/hooks/useDemoMode';
@@ -69,6 +69,7 @@ import { getExpenseCountByCategoryId, reassignExpensesCategory, clearExpensesCat
 import { CategoryManagementDialog } from '@/components/expenses/CategoryManagementDialog';
 import { CategoryDeleteConfirmDialog } from '@/components/expenses/CategoryDeleteConfirmDialog';
 import { CategoryMoveDialog } from '@/components/expenses/CategoryMoveDialog';
+import { getLazyIcon } from '@/components/expenses/IconPickerPopover';
 import { CreateDummySnapshotModal } from '@/components/CreateDummySnapshotModal';
 import { DeleteDummyDataDialog } from '@/components/DeleteDummyDataDialog';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -2626,10 +2627,23 @@ export default function SettingsPage() {
                             className="flex items-center justify-between py-3 hover:bg-muted/30 transition-colors"
                           >
                             <div className="flex items-center gap-3">
-                              <div
-                                className="w-3 h-3 rounded-full border border-border"
-                                style={{ backgroundColor: category.color || '#3b82f6' }}
-                              />
+                              {(() => {
+                                const CatIcon = category.icon ? getLazyIcon(category.icon) : null;
+                                return (
+                                  <div
+                                    className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                                    style={{ backgroundColor: category.color ? `${category.color}20` : 'var(--muted)' }}
+                                  >
+                                    {CatIcon ? (
+                                      <Suspense fallback={<div className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: category.color || '#3b82f6' }} />}>
+                                        <CatIcon className="w-3.5 h-3.5" style={{ color: category.color || 'var(--muted-foreground)' }} aria-hidden="true" />
+                                      </Suspense>
+                                    ) : (
+                                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: category.color || '#3b82f6' }} />
+                                    )}
+                                  </div>
+                                );
+                              })()}
                               <div>
                                 <p className="font-medium text-sm">{category.name}</p>
                                 {category.subCategories && category.subCategories.length > 0 && (

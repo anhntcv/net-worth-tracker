@@ -24,7 +24,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
-import { Receipt, Coins, Target, Layers, Plus } from 'lucide-react';
+import { ArrowRightLeft, Coins, Target, Layers, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useDemoMode } from '@/lib/hooks/useDemoMode';
 import { cn } from '@/lib/utils';
@@ -56,7 +56,7 @@ function getErrorMessage(error: unknown): string {
 // Module-level constant: stable reference for React Compiler
 // Analisi tab removed — it now lives at /dashboard/analisi as a standalone page.
 const CASHFLOW_TABS_BASE: Array<{ value: string; label: string; mobileLabel: string; icon: React.ElementType }> = [
-  { value: 'tracking',     label: 'Tracciamento', mobileLabel: 'Spese',     icon: Receipt },
+  { value: 'tracking',     label: 'Tracciamento', mobileLabel: 'Spese',     icon: ArrowRightLeft },
   { value: 'dividends',    label: 'Dividendi',    mobileLabel: 'Dividendi', icon: Coins   },
   { value: 'budget',       label: 'Budget',       mobileLabel: 'Budget',    icon: Target  },
 ];

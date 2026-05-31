@@ -20,6 +20,7 @@ export const EXPENSE_TYPE_LABELS: Record<ExpenseType, string> = {
 export interface ExpenseSubCategory {
   id: string;
   name: string;
+  icon?: string;
 }
 
 export interface ExpenseCategory {

@@ -24,11 +24,12 @@
  * @param onRefresh - Callback to refresh expense list after deletion
  */
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, Suspense } from 'react';
 import { formatCurrency } from '@/lib/utils/formatters';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
-import { Expense, ExpenseType, EXPENSE_TYPE_LABELS } from '@/types/expenses';
+import { Expense, ExpenseCategory, ExpenseType, EXPENSE_TYPE_LABELS } from '@/types/expenses';
+import { getLazyIcon } from '@/components/expenses/IconPickerPopover';
 import {
   deleteExpense,
   deleteRecurringExpenses,
@@ -66,11 +67,18 @@ interface ExpenseTableProps {
   onRefresh: () => void;
   isDemo?: boolean;
   hasActiveFilters?: boolean;
+  categories?: ExpenseCategory[];
 }
 
-export function ExpenseTable({ expenses, onEdit, onRefresh, isDemo = false, hasActiveFilters = false }: ExpenseTableProps) {
+export function ExpenseTable({ expenses, onEdit, onRefresh, isDemo = false, hasActiveFilters = false, categories = [] }: ExpenseTableProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  // categoryId → { icon, color } for icon display in the category cell
+  const categoryMetaMap = useMemo(
+    () => new Map(categories.map(c => [c.id, { icon: c.icon, color: c.color }])),
+    [categories]
+  );
 
   // ========== State Management ==========
 
@@ -439,6 +447,31 @@ export function ExpenseTable({ expenses, onEdit, onRefresh, isDemo = false, hasA
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
+                  {(() => {
+                    const meta = categoryMetaMap.get(expense.categoryId);
+                    const CatIcon = meta?.icon ? getLazyIcon(meta.icon) : null;
+                    if (CatIcon) {
+                      return (
+                        <div
+                          className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0"
+                          style={{ backgroundColor: meta?.color ? `${meta.color}20` : 'var(--muted)' }}
+                        >
+                          <Suspense fallback={null}>
+                            <CatIcon className="w-3 h-3" style={{ color: meta?.color || 'var(--muted-foreground)' }} aria-hidden="true" />
+                          </Suspense>
+                        </div>
+                      );
+                    }
+                    if (meta?.color) {
+                      return (
+                        <div
+                          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: meta.color }}
+                        />
+                      );
+                    }
+                    return null;
+                  })()}
                   {expense.categoryName}
                 </div>
               </TableCell>

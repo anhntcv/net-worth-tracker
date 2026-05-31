@@ -52,11 +52,13 @@ import { Plus, X, Trash2, Pencil, Search, Download, ArrowRightLeft } from 'lucid
 import { motion, AnimatePresence } from 'framer-motion';
 import { ExpenseDialog } from '@/components/expenses/ExpenseDialog';
 import { ExpenseTable } from '@/components/expenses/ExpenseTable';
+import { getLazyIcon } from '@/components/expenses/IconPickerPopover';
+import { CategoryBreakdownList } from '@/components/cashflow/CategoryBreakdownList';
 import { Badge } from '@/components/ui/badge';
+import { Suspense } from 'react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { useChartColors } from '@/lib/hooks/useChartColors';
 import { PeriodPicker } from '@/components/ui/period-picker';
 import { type Period, periodToRange, periodLabel, currentMonthPeriod, isCurrentMonth } from '@/lib/utils/period';
 import { MultiSelect, type MultiSelectGroup } from '@/components/ui/multi-select';
@@ -92,6 +94,8 @@ interface MobileExpenseRowProps {
   onDelete: (expense: Expense) => void;
   isPendingDelete: boolean;
   isDemo: boolean;
+  categoryIcon?: string;
+  categoryColor?: string;
 }
 
 /**
@@ -112,6 +116,8 @@ function MobileExpenseRow({
   onDelete,
   isPendingDelete,
   isDemo,
+  categoryIcon,
+  categoryColor,
 }: MobileExpenseRowProps) {
   const date = getExpenseDate(expense.date);
   const isIncome = expense.type === 'income';
@@ -139,13 +145,32 @@ function MobileExpenseRow({
         onClick={() => onToggleExpand(expense.id)}
         aria-expanded={isExpanded}
       >
-        {/* Type color dot */}
-        <span
-          className={cn(
-            'w-2 h-2 rounded-full flex-shrink-0',
-            TYPE_DOT_CLASS[expense.type] ?? 'bg-muted-foreground',
-          )}
-        />
+        {/* Category icon or type dot */}
+        {(() => {
+          const CatIcon = categoryIcon ? getLazyIcon(categoryIcon) : null;
+          if (CatIcon) {
+            return (
+              <div
+                className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                style={{ backgroundColor: categoryColor ? `${categoryColor}20` : 'var(--muted)' }}
+              >
+                <Suspense fallback={<span className={cn('w-2 h-2 rounded-full', TYPE_DOT_CLASS[expense.type] ?? 'bg-muted-foreground')} />}>
+                  <CatIcon className="w-3.5 h-3.5" style={{ color: categoryColor || 'var(--muted-foreground)' }} aria-hidden="true" />
+                </Suspense>
+              </div>
+            );
+          }
+          return (
+            <div
+              className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: categoryColor ? `${categoryColor}20` : 'var(--muted)' }}
+            >
+              <span
+                className={cn('w-2 h-2 rounded-full flex-shrink-0', TYPE_DOT_CLASS[expense.type] ?? 'bg-muted-foreground')}
+              />
+            </div>
+          );
+        })()}
 
         {/* Title + badges + subtitle */}
         <div className="flex-1 min-w-0">
@@ -249,7 +274,7 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
   const { user } = useAuth();
   const isDemo = useDemoMode();
   const queryClient = useQueryClient();
-  const chartColors = useChartColors();
+  // chartColors removed — CategoryBreakdownList manages its own useChartColors() internally.
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
@@ -623,6 +648,12 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
     return filtered;
   }, [expenses, selectedTypes, selectedCatIds, soloSelectedCategory, selectedSubCategoryId, searchQuery, selectedAccountId]);
 
+  // categoryId → { icon, color } lookup for mobile row icon badges.
+  const categoryMetaMap = useMemo(() =>
+    new Map(categories.map(c => [c.id, { icon: c.icon, color: c.color }])),
+    [categories]
+  );
+
   // Sort the filtered list for the mobile/tablet flat list.
   // date-desc also gets an explicit sort — never rely on Firestore document order.
   const mobileSortedExpenses = useMemo(() => {
@@ -982,40 +1013,7 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
                     <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground mb-3">
                       Spese per Categoria
                     </p>
-                    <div className="space-y-3">
-                      {heroExpenseCategories.map((cat, i) => (
-                        <div key={cat.category} className="space-y-1">
-                          <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <div
-                                className="w-2 h-2 rounded-full flex-shrink-0"
-                                style={{ background: chartColors[i % chartColors.length] || `var(--chart-${(i % 5) + 1})` }}
-                              />
-                              <span className="text-[13px] text-foreground truncate">{cat.category}</span>
-                            </div>
-                            <div className="flex items-center gap-2 ml-3 flex-shrink-0">
-                              <span className="text-[11px] text-muted-foreground tabular-nums">{Math.round(cat.percentage)}%</span>
-                              <span className="text-[13px] font-mono tabular-nums text-foreground">
-                                {cachedFormatCurrencyEUR(cat.amount, true)}
-                              </span>
-                            </div>
-                          </div>
-                          <div
-                            className="h-[3px] bg-muted rounded-full overflow-hidden"
-                            role="progressbar"
-                            aria-valuenow={Math.round(cat.percentage)}
-                            aria-valuemin={0}
-                            aria-valuemax={100}
-                            aria-label={`${cat.category}: ${Math.round(cat.percentage)}%`}
-                          >
-                            <div
-                              className="h-full rounded-full"
-                              style={{ width: `${cat.percentage}%`, background: chartColors[i % chartColors.length] || `var(--chart-${(i % 5) + 1})` }}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                    <CategoryBreakdownList items={heroExpenseCategories} categories={categories} />
                   </div>
                 )}
 
@@ -1025,40 +1023,7 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
                     <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground mb-3">
                       Entrate per Categoria
                     </p>
-                    <div className="space-y-3">
-                      {heroIncomeCategories.map((cat, i) => (
-                        <div key={cat.category} className="space-y-1">
-                          <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <div
-                                className="w-2 h-2 rounded-full flex-shrink-0"
-                                style={{ background: chartColors[i % chartColors.length] || `var(--chart-${(i % 5) + 1})` }}
-                              />
-                              <span className="text-[13px] text-foreground truncate">{cat.category}</span>
-                            </div>
-                            <div className="flex items-center gap-2 ml-3 flex-shrink-0">
-                              <span className="text-[11px] text-muted-foreground tabular-nums">{Math.round(cat.percentage)}%</span>
-                              <span className="text-[13px] font-mono tabular-nums text-foreground">
-                                {cachedFormatCurrencyEUR(cat.amount, true)}
-                              </span>
-                            </div>
-                          </div>
-                          <div
-                            className="h-[3px] bg-muted rounded-full overflow-hidden"
-                            role="progressbar"
-                            aria-valuenow={Math.round(cat.percentage)}
-                            aria-valuemin={0}
-                            aria-valuemax={100}
-                            aria-label={`${cat.category}: ${Math.round(cat.percentage)}%`}
-                          >
-                            <div
-                              className="h-full rounded-full"
-                              style={{ width: `${cat.percentage}%`, background: chartColors[i % chartColors.length] || `var(--chart-${(i % 5) + 1})` }}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                    <CategoryBreakdownList items={heroIncomeCategories} categories={categories} />
                   </div>
                 )}
               </div>
@@ -1116,6 +1081,7 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
               onRefresh={onRefresh}
               isDemo={isDemo}
               hasActiveFilters={hasActiveFilters}
+              categories={categories}
             />
           </div>
 
@@ -1154,18 +1120,23 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
                   </Select>
                 </div>
                 <div className="divide-y divide-border">
-                  {mobileSortedExpenses.slice(0, mobileShowCount).map(expense => (
-                    <MobileExpenseRow
-                      key={expense.id}
-                      expense={expense}
-                      isExpanded={expandedRowId === expense.id}
-                      onToggleExpand={handleToggleExpand}
-                      onEdit={handleEditExpense}
-                      onDelete={handleDeleteExpense}
-                      isPendingDelete={pendingDeleteId === expense.id}
-                      isDemo={isDemo}
-                    />
-                  ))}
+                  {mobileSortedExpenses.slice(0, mobileShowCount).map(expense => {
+                    const catMeta = categoryMetaMap.get(expense.categoryId);
+                    return (
+                      <MobileExpenseRow
+                        key={expense.id}
+                        expense={expense}
+                        isExpanded={expandedRowId === expense.id}
+                        onToggleExpand={handleToggleExpand}
+                        onEdit={handleEditExpense}
+                        onDelete={handleDeleteExpense}
+                        isPendingDelete={pendingDeleteId === expense.id}
+                        isDemo={isDemo}
+                        categoryIcon={catMeta?.icon}
+                        categoryColor={catMeta?.color}
+                      />
+                    );
+                  })}
                 </div>
                 {filteredExpenses.length > mobileShowCount && (
                   <div className="pt-4 text-center">

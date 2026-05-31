@@ -1,6 +1,6 @@
 'use client';
 
-import { CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { CSSProperties, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
   staggerContainer,
@@ -25,6 +25,8 @@ import { Camera, Receipt, TrendingDown, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCreateSnapshot } from '@/lib/hooks/useSnapshots';
 import { useDashboardOverview } from '@/lib/hooks/useDashboardOverview';
+import { useExpenseCategories } from '@/lib/hooks/useExpenses';
+import { CategoryBreakdownList } from '@/components/cashflow/CategoryBreakdownList';
 import { SavingsRateBadge } from '@/components/ui/SavingsRateBadge';
 import { useMediaQuery } from '@/lib/hooks/useMediaQuery';
 import { getItalyDate, getItalyMonthYear } from '@/lib/utils/dateHelpers';
@@ -85,6 +87,7 @@ export default function DashboardPage() {
   }, [user?.displayName]);
 
   const { data: overview, isLoading: loadingOverview } = useDashboardOverview(user?.uid);
+  const { data: expenseCategories = [] } = useExpenseCategories(user?.uid);
   const createSnapshotMutation = useCreateSnapshot(user?.uid || '');
 
   const loading = loadingOverview;
@@ -626,10 +629,6 @@ export default function DashboardPage() {
         const monthLabel = `${MONTH_NAMES_IT[italyMonth - 1].toUpperCase()} ${italyYear}`;
         const ratio = coverageRatio;
 
-        // Category bar color: chart-1 for expenses (blue-ish), chart-2 for income (green-ish).
-        const expenseColor = chartColors[0] || 'var(--chart-1)';
-        const incomeColor = chartColors[1] || 'var(--chart-2)';
-
         return (
           <motion.div
             layout="position"
@@ -730,27 +729,10 @@ export default function DashboardPage() {
                           <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground mb-3">
                             Spese per Categoria
                           </p>
-                          <div className="space-y-3">
-                            {overview.expenseStats.topExpenseCategories.map(cat => (
-                              <div key={cat.category} className="space-y-1">
-                                <div className="flex justify-between items-center">
-                                  <div className="flex items-center gap-2 min-w-0">
-                                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: expenseColor }} />
-                                    <span className="text-[13px] text-foreground truncate">{cat.category}</span>
-                                  </div>
-                                  <span className="text-[13px] font-mono tabular-nums text-foreground ml-3 flex-shrink-0">
-                                    {cachedFormatCurrencyEUR(cat.amount, true)}
-                                  </span>
-                                </div>
-                                <div className="h-[3px] bg-muted rounded-full overflow-hidden">
-                                  <div
-                                    className="h-full rounded-full"
-                                    style={{ width: `${cat.percentage}%`, background: expenseColor }}
-                                  />
-                                </div>
-                              </div>
-                            ))}
-                          </div>
+                          <CategoryBreakdownList
+                            items={overview.expenseStats.topExpenseCategories}
+                            categories={expenseCategories}
+                          />
                         </div>
                       )}
 
@@ -760,27 +742,10 @@ export default function DashboardPage() {
                           <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground mb-3">
                             Entrate per Categoria
                           </p>
-                          <div className="space-y-3">
-                            {overview.expenseStats.topIncomeCategories.map(cat => (
-                              <div key={cat.category} className="space-y-1">
-                                <div className="flex justify-between items-center">
-                                  <div className="flex items-center gap-2 min-w-0">
-                                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: incomeColor }} />
-                                    <span className="text-[13px] text-foreground truncate">{cat.category}</span>
-                                  </div>
-                                  <span className="text-[13px] font-mono tabular-nums text-foreground ml-3 flex-shrink-0">
-                                    {cachedFormatCurrencyEUR(cat.amount, true)}
-                                  </span>
-                                </div>
-                                <div className="h-[3px] bg-muted rounded-full overflow-hidden">
-                                  <div
-                                    className="h-full rounded-full"
-                                    style={{ width: `${cat.percentage}%`, background: incomeColor }}
-                                  />
-                                </div>
-                              </div>
-                            ))}
-                          </div>
+                          <CategoryBreakdownList
+                            items={overview.expenseStats.topIncomeCategories}
+                            categories={expenseCategories}
+                          />
                         </div>
                       )}
 

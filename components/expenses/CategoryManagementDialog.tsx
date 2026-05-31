@@ -35,9 +35,9 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Plus, X, ArrowRightLeft, Check, Tag } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { CategoryMoveDialog } from './CategoryMoveDialog';
 import { IconPickerPopover, getLazyIcon } from './IconPickerPopover';
-import { CATEGORY_ICONS } from '@/lib/constants/categoryIcons';
 import { useMediaQuery } from '@/lib/hooks/useMediaQuery';
 import { cn } from '@/lib/utils';
 
@@ -104,8 +104,12 @@ interface FormBodyProps {
   subCategories: ExpenseSubCategory[];
   newSubCategoryName: string;
   setNewSubCategoryName: (v: string) => void;
+  newSubCategoryIcon?: string;
+  setNewSubCategoryIcon: (icon: string | undefined) => void;
   handleAddSubCategory: () => void;
   handleRemoveSubCategory: (id: string) => void;
+  handleUpdateSubCategoryName: (id: string, name: string) => void;
+  handleUpdateSubCategoryIcon: (id: string, icon: string | undefined) => void;
   handleMoveSubCategory: ((id: string) => void) | null;
   form: ReturnType<typeof useForm<CategoryFormValues>>;
 }
@@ -115,8 +119,12 @@ function CategoryFormBody({
   subCategories,
   newSubCategoryName,
   setNewSubCategoryName,
+  newSubCategoryIcon,
+  setNewSubCategoryIcon,
   handleAddSubCategory,
   handleRemoveSubCategory,
+  handleUpdateSubCategoryName,
+  handleUpdateSubCategoryIcon,
   handleMoveSubCategory,
   form,
 }: Readonly<FormBodyProps>) {
@@ -124,31 +132,36 @@ function CategoryFormBody({
   const selectedColor = useWatch({ control, name: 'color' });
   const selectedType  = useWatch({ control, name: 'type' });
   const selectedIcon  = useWatch({ control, name: 'icon' });
+  const selectedName  = useWatch({ control, name: 'name' });
   const subInputRef   = useRef<HTMLInputElement>(null);
 
   // Resolve the icon for the live preview
   const PreviewIcon = selectedIcon ? getLazyIcon(selectedIcon) : null;
-  const iconLabel = selectedIcon ? (CATEGORY_ICONS[selectedIcon] ?? selectedIcon) : undefined;
 
   return (
     <div className="space-y-6">
       {/* ---- Live Preview ---- */}
-      <div className="flex flex-col items-center gap-2 py-2">
+      <div className="flex flex-col items-center gap-1.5 py-2">
         <div
-          className="flex h-16 w-16 items-center justify-center rounded-2xl transition-colors duration-200"
+          className="flex h-14 w-14 items-center justify-center rounded-2xl transition-colors duration-200"
           style={{ backgroundColor: selectedColor ? `${selectedColor}20` : 'var(--muted)' }}
-          aria-label={`Anteprima: ${iconLabel ?? 'nessuna icona'}, ${COLOR_LABELS[selectedColor ?? ''] ?? 'nessun colore'}`}
+          aria-label="Anteprima categoria"
         >
           {PreviewIcon ? (
-            <Suspense fallback={<Tag className="h-7 w-7 text-muted-foreground" aria-hidden="true" />}>
-              <PreviewIcon className="h-7 w-7" style={{ color: selectedColor ?? 'var(--muted-foreground)' }} aria-hidden="true" />
+            <Suspense fallback={<Tag className="h-6 w-6 text-muted-foreground" aria-hidden="true" />}>
+              <PreviewIcon className="h-6 w-6" style={{ color: selectedColor ?? 'var(--muted-foreground)' }} aria-hidden="true" />
             </Suspense>
           ) : (
-            <Tag className="h-7 w-7" style={{ color: selectedColor ?? 'var(--muted-foreground)' }} aria-hidden="true" />
+            <Tag className="h-6 w-6" style={{ color: selectedColor ?? 'var(--muted-foreground)' }} aria-hidden="true" />
           )}
         </div>
-        {iconLabel && (
-          <span className="text-xs text-muted-foreground">{iconLabel}</span>
+        <span className="text-sm font-medium text-foreground">
+          {selectedName?.trim() || 'Nuova Categoria'}
+        </span>
+        {selectedType && (
+          <Badge variant="secondary" className="text-[10px] font-normal px-2 py-0 h-5">
+            {EXPENSE_TYPE_LABELS[selectedType]}
+          </Badge>
         )}
       </div>
 
@@ -264,44 +277,69 @@ function CategoryFormBody({
 
       {/* ---- Sottocategorie ---- */}
       <div className="space-y-3">
-        <Label>Sottocategorie <span className="text-muted-foreground font-normal">(opzionali)</span></Label>
+        <div className="flex items-center justify-between">
+          <Label>Sottocategorie</Label>
+          {subCategories.length > 0 && (
+            <Badge variant="outline" className="text-[10px] font-normal px-1.5 h-5 text-muted-foreground">
+              {subCategories.length}
+            </Badge>
+          )}
+        </div>
 
-        {/* Existing list */}
+        {/* Existing subcategories — inline editable list */}
         {subCategories.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+          <div className="divide-y divide-border/50 rounded-xl border border-border/60 overflow-hidden">
             {subCategories.map((sub) => (
-              <div
-                key={sub.id}
-                className="group flex items-center gap-1 pl-2.5 pr-1 py-1 rounded-full text-xs font-medium bg-muted border border-border/60 hover:border-border transition-colors"
-              >
-                <Tag className="w-3 h-3 text-muted-foreground shrink-0" aria-hidden="true" />
-                <span className="max-w-[120px] truncate">{sub.name}</span>
-                {handleMoveSubCategory && (
-                  <button
+              <div key={sub.id} className="group flex items-center gap-2 px-3 py-1.5 hover:bg-muted/30 transition-colors">
+                <IconPickerPopover
+                  value={sub.icon}
+                  onChange={(icon) => handleUpdateSubCategoryIcon(sub.id, icon)}
+                  triggerClassName="h-8 w-8 rounded-lg"
+                  triggerAriaLabel={`Icona per ${sub.name}`}
+                />
+                <Input
+                  value={sub.name}
+                  onChange={(e) => handleUpdateSubCategoryName(sub.id, e.target.value)}
+                  className="h-8 flex-1 border-transparent bg-transparent shadow-none hover:bg-muted/50 focus-visible:bg-background focus-visible:border-input text-sm px-2"
+                  aria-label="Nome sottocategoria"
+                />
+                <div className="flex items-center shrink-0">
+                  {handleMoveSubCategory && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 [@media(pointer:fine)]:opacity-0 [@media(pointer:fine)]:group-hover:opacity-100 [@media(pointer:fine)]:group-focus-within:opacity-100 transition-opacity"
+                      onClick={() => handleMoveSubCategory(sub.id)}
+                      aria-label={`Sposta transazioni di ${sub.name}`}
+                    >
+                      <ArrowRightLeft className="h-3.5 w-3.5 text-blue-500" />
+                    </Button>
+                  )}
+                  <Button
                     type="button"
-                    onClick={() => handleMoveSubCategory(sub.id)}
-                    className="ml-0.5 p-0.5 rounded-full opacity-0 group-hover:opacity-100 hover:bg-blue-100 dark:hover:bg-blue-950 transition-all focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    aria-label={`Sposta transazioni di ${sub.name}`}
-                    title="Sposta transazioni"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => handleRemoveSubCategory(sub.id)}
+                    aria-label={`Rimuovi ${sub.name}`}
                   >
-                    <ArrowRightLeft className="w-3 h-3 text-blue-500" />
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => handleRemoveSubCategory(sub.id)}
-                  className="p-0.5 rounded-full hover:bg-destructive/15 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                  aria-label={`Rimuovi sottocategoria ${sub.name}`}
-                >
-                  <X className="w-3 h-3 text-muted-foreground hover:text-destructive" />
-                </button>
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
         )}
 
-        {/* Add new */}
+        {/* Add new subcategory */}
         <div className="flex items-center gap-2">
+          <IconPickerPopover
+            value={newSubCategoryIcon}
+            onChange={setNewSubCategoryIcon}
+            triggerClassName="h-8 w-8 rounded-lg"
+            triggerAriaLabel="Icona nuova sottocategoria"
+          />
           <Input
             ref={subInputRef}
             placeholder="Nuova sottocategoria…"
@@ -313,12 +351,13 @@ function CategoryFormBody({
                 handleAddSubCategory();
               }
             }}
-            className="text-sm"
+            className="flex-1 text-sm h-8"
           />
           <Button
             type="button"
             variant="outline"
             size="icon"
+            className="h-8 w-8 shrink-0"
             onClick={() => {
               handleAddSubCategory();
               subInputRef.current?.focus();
@@ -328,8 +367,9 @@ function CategoryFormBody({
             <Plus className="h-4 w-4" />
           </Button>
         </div>
+
         <p className="text-xs text-muted-foreground">
-          Premi Invio o + per aggiungere. Clicca &times; su un chip per rimuovere.
+          Premi Invio o + per aggiungere. Modifica nome e icona direttamente nella lista.
         </p>
       </div>
     </div>
@@ -353,6 +393,7 @@ export function CategoryManagementDialog({
 
   const [subCategories, setSubCategories] = useState<ExpenseSubCategory[]>([]);
   const [newSubCategoryName, setNewSubCategoryName] = useState('');
+  const [newSubCategoryIcon, setNewSubCategoryIcon] = useState<string | undefined>(undefined);
 
   // Subcategory deletion state
   const [deleteSubCategoryDialogOpen, setDeleteSubCategoryDialogOpen] = useState(false);
@@ -382,6 +423,7 @@ export function CategoryManagementDialog({
       setSubCategories([]);
     }
     setNewSubCategoryName(initialSubCategoryName || '');
+    setNewSubCategoryIcon(undefined);
   }, [open, category, reset, initialType, initialName, initialSubCategoryName]);
 
   // ---- Subcategory handlers ----
@@ -393,9 +435,18 @@ export function CategoryManagementDialog({
     }
     setSubCategories([
       ...subCategories,
-      { id: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`, name: trimmed },
+      { id: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`, name: trimmed, icon: newSubCategoryIcon },
     ]);
     setNewSubCategoryName('');
+    setNewSubCategoryIcon(undefined);
+  };
+
+  const handleUpdateSubCategoryName = (id: string, name: string) => {
+    setSubCategories((prev) => prev.map((s) => s.id === id ? { ...s, name } : s));
+  };
+
+  const handleUpdateSubCategoryIcon = (id: string, icon: string | undefined) => {
+    setSubCategories((prev) => prev.map((s) => s.id === id ? { ...s, icon } : s));
   };
 
   const handleRemoveSubCategory = async (subCategoryId: string) => {
@@ -530,8 +581,12 @@ export function CategoryManagementDialog({
     subCategories,
     newSubCategoryName,
     setNewSubCategoryName,
+    newSubCategoryIcon,
+    setNewSubCategoryIcon,
     handleAddSubCategory,
     handleRemoveSubCategory,
+    handleUpdateSubCategoryName,
+    handleUpdateSubCategoryIcon,
     handleMoveSubCategory: category ? handleMoveSubCategory : null,
     form,
   };
