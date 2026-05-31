@@ -421,6 +421,7 @@ export function prepareCashflowData(expenses: any[]): CashflowData {
     const monthKey = `${date.getFullYear()}-${date.getMonth() + 1}`;
     monthsSet.add(monthKey);
 
+    if (expense.type === 'transfer') return;
     if (expense.type === 'income') {
       totalIncome += amount;
     } else {

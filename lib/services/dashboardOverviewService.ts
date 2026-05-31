@@ -179,6 +179,8 @@ function summarizeExpenses(expenses: Expense[]): ExpenseSummary {
 
   for (const expense of expenses) {
     const category = expense.categoryName ?? 'Altro';
+    // Transfers are net-zero — skip entirely
+    if (expense.type === 'transfer') continue;
     if (expense.type === 'income') {
       income += expense.amount;
       incomeByCategory.set(category, (incomeByCategory.get(category) ?? 0) + expense.amount);

@@ -13,6 +13,7 @@
  * Amount sign convention:
  * - Expenses (fixed, variable, debt): stored as negative values
  * - Income: stored as positive values
+ * - Transfers: stored as positive values (direction encoded by origin/destination asset IDs)
  * This allows simple summing for net cashflow calculations.
  */
 
@@ -229,10 +230,10 @@ export async function createExpense(
     // Priority 3: Create single expense
     const expensesRef = collection(db, EXPENSES_COLLECTION);
 
-    // Apply amount sign convention: expenses negative, income positive
+    // Apply amount sign convention: expenses negative, income/transfers positive
     // This allows simple sum() for net cashflow without conditional logic
     let amount = Math.abs(expenseData.amount);
-    if (expenseData.type !== 'income') {
+    if (expenseData.type !== 'income' && expenseData.type !== 'transfer') {
       amount = -amount;
     }
 
@@ -250,6 +251,7 @@ export async function createExpense(
       link: expenseData.link,
       isRecurring: false,
       linkedCashAssetId: expenseData.linkedCashAssetId,
+      transferCashAssetId: expenseData.transferCashAssetId,
       costCenterId: expenseData.costCenterId,
       costCenterName: expenseData.costCenterName,
       createdAt: now,
@@ -509,7 +511,7 @@ export async function updateExpense(
     let updatedAmount = updates.amount;
     if (updatedAmount !== undefined && updates.type) {
       updatedAmount = Math.abs(updatedAmount);
-      if (updates.type !== 'income') {
+      if (updates.type !== 'income' && updates.type !== 'transfer') {
         updatedAmount = -updatedAmount;
       }
     }
@@ -521,6 +523,7 @@ export async function updateExpense(
       subCategoryName,
       date: updates.date ? Timestamp.fromDate(updates.date) : undefined,
       linkedCashAssetId: updates.linkedCashAssetId,
+      transferCashAssetId: updates.transferCashAssetId,
       updatedAt: Timestamp.now(),
     });
 
@@ -605,6 +608,7 @@ export async function getMonthlyExpenseSummary(
         variable: { total: 0, count: 0 },
         debt: { total: 0, count: 0 },
         income: { total: 0, count: 0 },
+        transfer: { total: 0, count: 0 },
       },
     };
 
@@ -706,12 +710,21 @@ export function calculateTotalIncome(expenses: Expense[]): number {
     .reduce((total, expense) => total + expense.amount, 0);
 }
 
+/** Expense types that count as real spending (excludes income and transfers). */
+export const COUNTABLE_EXPENSE_TYPES: ExpenseType[] = ['fixed', 'variable', 'debt'];
+
+/** Returns true if the expense is a real spending entry (not income or transfer). */
+export function isCountableExpense(e: Expense): boolean {
+  return COUNTABLE_EXPENSE_TYPES.includes(e.type);
+}
+
 /**
- * Calculate total expenses for a period
+ * Calculate total expenses for a period.
+ * Only counts real spending types (fixed, variable, debt) — excludes income and transfers.
  */
 export function calculateTotalExpenses(expenses: Expense[]): number {
   return expenses
-    .filter(expense => expense.type !== 'income')
+    .filter(isCountableExpense)
     .reduce((total, expense) => total + Math.abs(expense.amount), 0);
 }
 

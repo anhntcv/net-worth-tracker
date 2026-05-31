@@ -16,8 +16,8 @@ export type BudgetScope = 'type' | 'category' | 'subcategory';
 export interface BudgetItem {
   id: string;
   scope: BudgetScope;
-  // Populated only for scope='type' — excludes 'income'
-  expenseType?: Exclude<ExpenseType, 'income'>;
+  // Populated only for scope='type' — excludes 'income' and 'transfer'
+  expenseType?: Exclude<ExpenseType, 'income' | 'transfer'>;
   // Populated for scope='category' | 'subcategory'
   categoryId?: string;
   categoryName?: string; // denormalized fallback if category is deleted

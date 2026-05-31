@@ -92,6 +92,23 @@ export async function getAllCategories(userId: string): Promise<ExpenseCategory[
 }
 
 /**
+ * Ensure a system "Trasferimenti" category of type 'transfer' exists for the user.
+ * Returns the category ID — creates the category if missing.
+ */
+export async function ensureTransferCategory(userId: string): Promise<string> {
+  const categories = await getAllCategories(userId);
+  const existing = categories.find(c => c.type === 'transfer');
+  if (existing) return existing.id;
+
+  return createCategory(userId, {
+    name: 'Trasferimenti',
+    type: 'transfer',
+    icon: 'ArrowLeftRight',
+    subCategories: [],
+  });
+}
+
+/**
  * Get categories by type for a specific user
  */
 export async function getCategoriesByType(

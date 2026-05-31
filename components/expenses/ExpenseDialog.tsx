@@ -35,7 +35,7 @@ import { Asset } from '@/types/assets';
 import { createExpense, updateExpense } from '@/lib/services/expenseService';
 import { getAllAssets, updateCashAssetBalance } from '@/lib/services/assetService';
 import { getSettings } from '@/lib/services/assetAllocationService';
-import { getAllCategories } from '@/lib/services/expenseCategoryService';
+import { getAllCategories, ensureTransferCategory } from '@/lib/services/expenseCategoryService';
 import { queryKeys } from '@/lib/query/queryKeys';
 import { Timestamp } from 'firebase/firestore';
 import { CategoryManagementDialog } from '@/components/expenses/CategoryManagementDialog';
@@ -62,7 +62,7 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, ArrowLeftRight } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/formatters';
 import { useMediaQuery } from '@/lib/hooks/useMediaQuery';
 import { cn } from '@/lib/utils';
@@ -74,7 +74,7 @@ import { cn } from '@/lib/utils';
 
 const expenseSchema = z
   .object({
-    type: z.enum(['fixed', 'variable', 'debt', 'income']),
+    type: z.enum(['fixed', 'variable', 'debt', 'income', 'transfer']),
     categoryId: z.string().min(1, "Categoria è obbligatoria"),
     subCategoryId: z.string().optional(),
     amount: z.number().positive("L'importo deve essere positivo"),
@@ -92,6 +92,7 @@ const expenseSchema = z
     installmentAmounts: z.array(z.number()).optional(),
     installmentStartDate: z.date().optional(),
     linkedCashAssetId: z.string().optional(),
+    transferCashAssetId: z.string().optional(),
   })
   .refine(
     (data) => {
@@ -120,6 +121,7 @@ const CREATE_TITLES: Record<ExpenseType, string> = {
   fixed: 'Nuova Spesa Fissa',
   debt: 'Nuovo Debito',
   income: 'Nuova Entrata',
+  transfer: 'Nuovo Trasferimento',
 };
 
 const EDIT_TITLES: Record<ExpenseType, string> = {
@@ -127,6 +129,7 @@ const EDIT_TITLES: Record<ExpenseType, string> = {
   fixed: 'Modifica Spesa',
   debt: 'Modifica Debito',
   income: 'Modifica Entrata',
+  transfer: 'Modifica Trasferimento',
 };
 
 function isAdvancedPrePopulated(expense: Expense | null | undefined): boolean {
@@ -195,6 +198,7 @@ interface FormBodyProps {
   selectedCategoryId: string | undefined;
   watchedSubCategoryId: string | undefined;
   watchedLinkedCashAssetId: string | undefined;
+  watchedTransferCashAssetId: string | undefined;
   watchedIsInstallment: boolean | undefined;
   watchedInstallmentCount: number | undefined;
   watchedInstallmentTotalAmount: number | undefined;
@@ -233,6 +237,7 @@ function ExpenseFormBody({
   selectedCategoryId,
   watchedSubCategoryId,
   watchedLinkedCashAssetId,
+  watchedTransferCashAssetId,
   watchedIsInstallment,
   watchedInstallmentCount,
   watchedInstallmentTotalAmount,
@@ -314,6 +319,12 @@ function ExpenseFormBody({
                       <span className="text-xs text-muted-foreground font-normal">Stipendio, bonus, dividendi, rimborsi</span>
                     </div>
                   </SelectItem>
+                  <SelectItem value="transfer">
+                    <div className="flex flex-col gap-0.5 py-0.5">
+                      <span className="font-medium flex items-center gap-1.5"><ArrowLeftRight className="h-3.5 w-3.5" />Trasferimento</span>
+                      <span className="text-xs text-muted-foreground font-normal">Sposta denaro tra conti</span>
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             )}
@@ -334,7 +345,7 @@ function ExpenseFormBody({
             {...register('amount', { valueAsNumber: true })}
             className={errors.amount ? 'border-destructive' : ''}
           />
-          {selectedType !== 'income' && (
+          {selectedType !== 'income' && selectedType !== 'transfer' && (
             <p className="text-xs text-muted-foreground">Salvato come negativo</p>
           )}
           {errors.amount && (
@@ -435,7 +446,58 @@ function ExpenseFormBody({
       </div>
 
       {/* ---- Conto collegato ---- */}
-      {cashAssets.length > 0 && (
+      {cashAssets.length > 0 && selectedType === 'transfer' ? (
+        /* Transfer: dual-account selector (origin + destination) */
+        <div className="space-y-3">
+          <div className="space-y-2">
+            <Label htmlFor="linkedCashAssetId">
+              Conto di Origine *
+            </Label>
+            <Select
+              value={watchedLinkedCashAssetId || '__none__'}
+              onValueChange={(value) => setValue('linkedCashAssetId', value)}
+            >
+              <SelectTrigger id="linkedCashAssetId">
+                <SelectValue placeholder="Seleziona conto" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Seleziona conto</SelectItem>
+                {cashAssets.map((asset) => (
+                  <SelectItem key={asset.id} value={asset.id}>
+                    {asset.name} ({asset.currency})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="transferCashAssetId">
+              Conto di Destinazione *
+            </Label>
+            <Select
+              value={watchedTransferCashAssetId || '__none__'}
+              onValueChange={(value) => setValue('transferCashAssetId', value)}
+            >
+              <SelectTrigger id="transferCashAssetId">
+                <SelectValue placeholder="Seleziona conto" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Seleziona conto</SelectItem>
+                {cashAssets
+                  .filter((a) => a.id !== watchedLinkedCashAssetId || watchedLinkedCashAssetId === '__none__')
+                  .map((asset) => (
+                    <SelectItem key={asset.id} value={asset.id}>
+                      {asset.name} ({asset.currency})
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Il saldo di entrambi i conti viene aggiornato automaticamente.
+          </p>
+        </div>
+      ) : cashAssets.length > 0 ? (
         <div className="space-y-2">
           <Label htmlFor="linkedCashAssetId">
             {selectedType === 'income' ? 'Conto di Accredito' : 'Conto di Prelievo'}
@@ -461,7 +523,7 @@ function ExpenseFormBody({
             Il saldo viene aggiornato automaticamente al salvataggio.
           </p>
         </div>
-      )}
+      ) : null}
 
       {/* ================================================================
           IMPOSTAZIONI AVANZATE
@@ -863,6 +925,7 @@ export function ExpenseDialog({ open, onClose, expense, onSuccess }: Readonly<Ex
       installmentCount: 2,
       installmentAmounts: [],
       linkedCashAssetId: '__none__',
+      transferCashAssetId: '__none__',
     },
   });
 
@@ -876,6 +939,7 @@ export function ExpenseDialog({ open, onClose, expense, onSuccess }: Readonly<Ex
   const watchedInstallmentStartDate = useWatch({ control, name: 'installmentStartDate' });
   const watchedInstallmentAmounts = useWatch({ control, name: 'installmentAmounts' });
   const watchedLinkedCashAssetId = useWatch({ control, name: 'linkedCashAssetId' });
+  const watchedTransferCashAssetId = useWatch({ control, name: 'transferCashAssetId' });
   const watchedSubCategoryId = useWatch({ control, name: 'subCategoryId' });
 
   const isEdit = !!expense;
@@ -898,6 +962,17 @@ export function ExpenseDialog({ open, onClose, expense, onSuccess }: Readonly<Ex
       setValue('subCategoryId', '');
     }
   }, [selectedCategoryId, expense, setValue]);
+
+  // Auto-set transfer category when type changes to 'transfer'
+  useEffect(() => {
+    if (selectedType === 'transfer' && user && open && !isEdit) {
+      ensureTransferCategory(user.uid).then((catId) => {
+        setValue('categoryId', catId);
+        // Refresh categories list so it includes the transfer category
+        loadCategories();
+      }).catch(console.error);
+    }
+  }, [selectedType, user, open, isEdit, setValue]);
 
   const loadCategories = async () => {
     if (!user) return;
@@ -959,6 +1034,7 @@ export function ExpenseDialog({ open, onClose, expense, onSuccess }: Readonly<Ex
         recurringDay: expense.recurringDay,
         recurringMonths: 1,
         linkedCashAssetId: expense.linkedCashAssetId || '__none__',
+        transferCashAssetId: expense.transferCashAssetId || '__none__',
       });
       setSelectedCostCenterId(expense.costCenterId || '__none__');
     } else {
@@ -975,6 +1051,7 @@ export function ExpenseDialog({ open, onClose, expense, onSuccess }: Readonly<Ex
         recurringDay: new Date().getDate(),
         recurringMonths: 12,
         linkedCashAssetId: '__none__',
+        transferCashAssetId: '__none__',
       });
       setSelectedCostCenterId('__none__');
     }
@@ -1059,6 +1136,8 @@ export function ExpenseDialog({ open, onClose, expense, onSuccess }: Readonly<Ex
 
     const linkedCashAssetId =
       data.linkedCashAssetId === '__none__' ? undefined : data.linkedCashAssetId;
+    const transferCashAssetId =
+      data.transferCashAssetId === '__none__' ? undefined : data.transferCashAssetId;
     const resolvedCostCenterId =
       selectedCostCenterId === '__none__' ? undefined : selectedCostCenterId;
     const resolvedCostCenterName = resolvedCostCenterId
@@ -1091,6 +1170,7 @@ export function ExpenseDialog({ open, onClose, expense, onSuccess }: Readonly<Ex
             : undefined,
         installmentStartDate: data.isInstallment ? data.installmentStartDate : undefined,
         linkedCashAssetId,
+        transferCashAssetId,
         costCenterId: resolvedCostCenterId,
         costCenterName: resolvedCostCenterName,
       };
@@ -1099,6 +1179,7 @@ export function ExpenseDialog({ open, onClose, expense, onSuccess }: Readonly<Ex
         const updatesWithLink = {
           ...expenseData,
           linkedCashAssetId: linkedCashAssetId ?? null,
+          transferCashAssetId: data.type === 'transfer' ? (transferCashAssetId ?? null) : null,
           costCenterId: resolvedCostCenterId ?? null,
           costCenterName: resolvedCostCenterName ?? null,
         };
@@ -1108,33 +1189,66 @@ export function ExpenseDialog({ open, onClose, expense, onSuccess }: Readonly<Ex
           category.name,
           subCategoryName
         );
-        toast.success('Spesa aggiornata con successo');
-
-        const oldLinkedAssetId = expense.linkedCashAssetId;
-        const newLinkedAssetId = linkedCashAssetId;
-        const oldSignedAmount = expense.amount;
-        const newSignedAmount =
-          data.type === 'income' ? Math.abs(data.amount) : -Math.abs(data.amount);
+        toast.success(data.type === 'transfer' ? 'Trasferimento aggiornato con successo' : 'Spesa aggiornata con successo');
 
         let assetUpdated = false;
-        if (
-          oldLinkedAssetId &&
-          newLinkedAssetId &&
-          oldLinkedAssetId === newLinkedAssetId
-        ) {
-          const delta = newSignedAmount - oldSignedAmount;
-          if (Math.abs(delta) > 0.001) {
-            await updateCashAssetBalance(oldLinkedAssetId, delta);
+
+        if (data.type === 'transfer') {
+          // Transfer edit: reconcile both origin (linkedCashAssetId) and destination (transferCashAssetId)
+          const oldOriginId = expense.linkedCashAssetId;
+          const oldDestId = expense.transferCashAssetId;
+          const newOriginId = linkedCashAssetId;
+          const newDestId = transferCashAssetId;
+          const oldAmount = Math.abs(expense.amount);
+          const newAmount = Math.abs(data.amount);
+
+          // Reverse old origin debit
+          if (oldOriginId) {
+            await updateCashAssetBalance(oldOriginId, oldAmount); // add back what was debited
+            assetUpdated = true;
+          }
+          // Reverse old destination credit
+          if (oldDestId) {
+            await updateCashAssetBalance(oldDestId, -oldAmount); // remove what was credited
+            assetUpdated = true;
+          }
+          // Apply new origin debit
+          if (newOriginId) {
+            await updateCashAssetBalance(newOriginId, -newAmount);
+            assetUpdated = true;
+          }
+          // Apply new destination credit
+          if (newDestId) {
+            await updateCashAssetBalance(newDestId, newAmount);
             assetUpdated = true;
           }
         } else {
-          if (oldLinkedAssetId) {
-            await updateCashAssetBalance(oldLinkedAssetId, -oldSignedAmount);
-            assetUpdated = true;
-          }
-          if (newLinkedAssetId) {
-            await updateCashAssetBalance(newLinkedAssetId, newSignedAmount);
-            assetUpdated = true;
+          // Non-transfer edit: existing reconciliation logic
+          const oldLinkedAssetId = expense.linkedCashAssetId;
+          const newLinkedAssetId = linkedCashAssetId;
+          const oldSignedAmount = expense.amount;
+          const newSignedAmount =
+            data.type === 'income' ? Math.abs(data.amount) : -Math.abs(data.amount);
+
+          if (
+            oldLinkedAssetId &&
+            newLinkedAssetId &&
+            oldLinkedAssetId === newLinkedAssetId
+          ) {
+            const delta = newSignedAmount - oldSignedAmount;
+            if (Math.abs(delta) > 0.001) {
+              await updateCashAssetBalance(oldLinkedAssetId, delta);
+              assetUpdated = true;
+            }
+          } else {
+            if (oldLinkedAssetId) {
+              await updateCashAssetBalance(oldLinkedAssetId, -oldSignedAmount);
+              assetUpdated = true;
+            }
+            if (newLinkedAssetId) {
+              await updateCashAssetBalance(newLinkedAssetId, newSignedAmount);
+              assetUpdated = true;
+            }
           }
         }
 
@@ -1162,10 +1276,22 @@ export function ExpenseDialog({ open, onClose, expense, onSuccess }: Readonly<Ex
             toast.success(`${result.length} voci ricorrenti create con successo`);
           }
         } else {
-          toast.success('Spesa creata con successo');
+          toast.success(data.type === 'transfer' ? 'Trasferimento creato con successo' : 'Spesa creata con successo');
         }
 
-        if (linkedCashAssetId) {
+        if (data.type === 'transfer') {
+          // Transfer: debit origin, credit destination
+          const amount = Math.abs(data.amount);
+          if (linkedCashAssetId) {
+            await updateCashAssetBalance(linkedCashAssetId, -amount);
+          }
+          if (transferCashAssetId) {
+            await updateCashAssetBalance(transferCashAssetId, amount);
+          }
+          if (linkedCashAssetId || transferCashAssetId) {
+            queryClient.invalidateQueries({ queryKey: queryKeys.assets.all(user.uid) });
+          }
+        } else if (linkedCashAssetId) {
           let firstSignedAmount: number;
           if (
             expenseData.isInstallment &&
@@ -1227,6 +1353,7 @@ export function ExpenseDialog({ open, onClose, expense, onSuccess }: Readonly<Ex
     selectedCategoryId,
     watchedSubCategoryId,
     watchedLinkedCashAssetId,
+    watchedTransferCashAssetId,
     watchedIsInstallment,
     watchedInstallmentCount,
     watchedInstallmentTotalAmount,

@@ -6,13 +6,15 @@ import { Timestamp } from 'firebase/firestore';
 // - variable: Variable expenses (groceries, entertainment)
 // - debt: Debt payments (loan installments, mortgages)
 // - income: Income entries (salary, bonuses, gifts)
-export type ExpenseType = 'fixed' | 'variable' | 'debt' | 'income';
+// - transfer: Inter-account transfers (net-zero for portfolio, excluded from all metrics)
+export type ExpenseType = 'fixed' | 'variable' | 'debt' | 'income' | 'transfer';
 
 export const EXPENSE_TYPE_LABELS: Record<ExpenseType, string> = {
   fixed: 'Spese Fisse',
   variable: 'Spese Variabili',
   debt: 'Debiti',
   income: 'Entrate',
+  transfer: 'Trasferimento',
 };
 
 export interface ExpenseSubCategory {
@@ -76,6 +78,8 @@ export interface Expense {
   // Optional link to a cash-class asset whose balance is updated when this expense is saved.
   // Only stored on single expenses or the first entry of a recurring/installment series.
   linkedCashAssetId?: string;
+  // Destination cash asset for transfer-type expenses. Origin is `linkedCashAssetId`.
+  transferCashAssetId?: string;
   // Optional cost center assignment for grouping expenses by object/project (e.g. "Automobile Dacia").
   // costCenterName is denormalized for query performance — same pattern as categoryName.
   // WARNING: If a cost center is renamed, bulk-update all linked expenses via costCenterService.renameCostCenter.
@@ -104,6 +108,7 @@ export interface ExpenseFormData {
   installmentAmounts?: number[]; // Individual amounts for each installment (manual mode)
   installmentStartDate?: Date; // Date of first installment
   linkedCashAssetId?: string; // ID of cash asset whose balance is updated on save
+  transferCashAssetId?: string; // Destination cash asset for transfers (origin = linkedCashAssetId)
   costCenterId?: string;    // Optional cost center assignment
   costCenterName?: string;  // Denormalized name, must be kept in sync via costCenterService
 }

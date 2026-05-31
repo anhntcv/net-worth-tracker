@@ -79,6 +79,7 @@ const TYPE_DOT_CLASS: Record<ExpenseType, string> = {
   fixed: 'bg-[var(--chart-2)]',
   variable: 'bg-[var(--chart-4)]',
   debt: 'bg-[var(--chart-3)]',
+  transfer: 'bg-[var(--chart-5)]',
 };
 
 // ─── MobileExpenseRow ─────────────────────────────────────────────────────────
@@ -114,6 +115,7 @@ function MobileExpenseRow({
 }: MobileExpenseRowProps) {
   const date = getExpenseDate(expense.date);
   const isIncome = expense.type === 'income';
+  const isTransfer = expense.type === 'transfer';
 
   // "20/5" short date shown in the subtitle (no year, no zero-padding).
   const shortDate = format(date, 'd/M');
@@ -126,7 +128,7 @@ function MobileExpenseRow({
   // Title: user-entered notes take priority; fall back to category name.
   const title = expense.notes?.trim() || expense.categoryName;
 
-  const amountLabel = `${isIncome ? '+' : ''}${cachedFormatCurrencyEUR(Math.abs(expense.amount))}`;
+  const amountLabel = `${isIncome ? '+' : isTransfer ? '' : ''}${cachedFormatCurrencyEUR(Math.abs(expense.amount))}`;
 
   return (
     <div className="py-3">
@@ -170,7 +172,9 @@ function MobileExpenseRow({
             'text-[14px] font-bold font-mono tabular-nums flex-shrink-0',
             isIncome
               ? 'text-emerald-600 dark:text-emerald-400'
-              : 'text-destructive',
+              : isTransfer
+                ? 'text-muted-foreground'
+                : 'text-destructive',
           )}
         >
           {amountLabel}
@@ -510,7 +514,7 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
   // Build grouped MultiSelect options: one group per ExpenseType with real categories.
   // The MultiSelect component handles group-level select-all natively via its toggleGroup.
   const categoryMultiSelectOptions = useMemo((): MultiSelectGroup[] => {
-    const ORDER: ExpenseType[] = ['income', 'fixed', 'variable', 'debt'];
+    const ORDER: ExpenseType[] = ['income', 'fixed', 'variable', 'debt', 'transfer'];
     return ORDER
       .map(type => {
         const cats = categories.filter(c => c.type === type);
@@ -685,7 +689,7 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
 
   // Top-5 expense categories aggregated from filteredExpenses for the hero bar chart.
   const heroExpenseCategories = useMemo(() => {
-    const items = filteredExpenses.filter(e => e.type !== 'income');
+    const items = filteredExpenses.filter(e => e.type !== 'income' && e.type !== 'transfer');
     const total = items.reduce((s, e) => s + Math.abs(e.amount), 0);
     const byCategory = new Map<string, number>();
     for (const e of items)

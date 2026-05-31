@@ -45,7 +45,7 @@ import { cn } from '@/lib/utils';
 // ---------------------------------------------------------------------------
 const categorySchema = z.object({
   name: z.string().min(1, 'Il nome è obbligatorio'),
-  type: z.enum(['fixed', 'variable', 'debt', 'income']),
+  type: z.enum(['fixed', 'variable', 'debt', 'income', 'transfer']),
   color: z.string().optional(),
 });
 
@@ -76,6 +76,7 @@ const TYPE_OPTIONS: { value: ExpenseType; label: string; description: string }[]
   { value: 'fixed',    label: EXPENSE_TYPE_LABELS.fixed,    description: 'Affitto, abbonamenti, bollette, utenze' },
   { value: 'debt',     label: EXPENSE_TYPE_LABELS.debt,     description: 'Mutuo, prestito, finanziamento ricorrente' },
   { value: 'income',   label: EXPENSE_TYPE_LABELS.income,   description: 'Stipendio, bonus, dividendi, rimborsi' },
+  { value: 'transfer', label: EXPENSE_TYPE_LABELS.transfer, description: 'Spostamenti tra conti, investimenti' },
 ];
 
 // ---------------------------------------------------------------------------

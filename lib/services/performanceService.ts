@@ -1106,6 +1106,9 @@ export async function getCashFlowsForPeriod(
 
     const entry = monthlyMap.get(key)!;
 
+    // Transfers are net-zero for portfolio metrics — skip entirely
+    if (expense.type === 'transfer') return;
+
     // Separate dividend income from other income
     if (expense.type === 'income') {
       if (dividendCategoryId && expense.categoryId === dividendCategoryId) {
@@ -1171,6 +1174,9 @@ export function getCashFlowsFromExpenses(
     }
 
     const entry = monthlyMap.get(key)!;
+
+    // Transfers are net-zero for portfolio metrics — skip entirely
+    if (expense.type === 'transfer') return;
 
     // Separate dividend income from other income
     if (expense.type === 'income') {

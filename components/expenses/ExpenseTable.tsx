@@ -140,6 +140,11 @@ export function ExpenseTable({ expenses, onEdit, onRefresh, isDemo = false, hasA
         await updateCashAssetBalance(expense.linkedCashAssetId, -expense.amount);
         if (user) queryClient.invalidateQueries({ queryKey: queryKeys.assets.all(user.uid) });
       }
+      // Reverse the transfer destination balance
+      if (expense.transferCashAssetId) {
+        await updateCashAssetBalance(expense.transferCashAssetId, -Math.abs(expense.amount));
+        if (user) queryClient.invalidateQueries({ queryKey: queryKeys.assets.all(user.uid) });
+      }
       await deleteExpense(expense.id);
       toast.success('Voce eliminata con successo');
       onRefresh();
@@ -216,6 +221,8 @@ export function ExpenseTable({ expenses, onEdit, onRefresh, isDemo = false, hasA
         return 'bg-[color-mix(in_oklch,var(--chart-4)_12%,transparent)] border-[color-mix(in_oklch,var(--chart-4)_35%,transparent)] text-[var(--chart-4)]';
       case 'debt':
         return 'bg-[color-mix(in_oklch,var(--chart-3)_12%,transparent)] border-[color-mix(in_oklch,var(--chart-3)_35%,transparent)] text-[var(--chart-3)]';
+      case 'transfer':
+        return 'bg-[color-mix(in_oklch,var(--chart-5)_12%,transparent)] border-[color-mix(in_oklch,var(--chart-5)_35%,transparent)] text-[var(--chart-5)]';
       default:
         return 'bg-muted border-border text-muted-foreground';
     }
