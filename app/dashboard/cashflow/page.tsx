@@ -22,9 +22,11 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowRightLeft, Coins, Target, Layers, Plus } from 'lucide-react';
+import { ArrowRightLeft, Coins, Target, Layers, Plus, Settings } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useDemoMode } from '@/lib/hooks/useDemoMode';
 import { cn } from '@/lib/utils';
@@ -61,12 +63,23 @@ const CASHFLOW_TABS_BASE: Array<{ value: string; label: string; mobileLabel: str
   { value: 'budget',       label: 'Budget',       mobileLabel: 'Budget',    icon: Target  },
 ];
 
+const VALID_CASHFLOW_TABS = ['tracking', 'dividends', 'budget', 'cost-centers'] as const;
+type CashflowTabId = (typeof VALID_CASHFLOW_TABS)[number];
+
+function getInitialTab(param: string | null): CashflowTabId {
+  return (VALID_CASHFLOW_TABS as readonly string[]).includes(param ?? '') ? (param as CashflowTabId) : 'tracking';
+}
+
 export default function CashflowPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
-  const [mountedTabs, setMountedTabs] = useState<Set<string>>(new Set(['tracking']));
-  const [activeTab, setActiveTab] = useState<string>('tracking');
+  const initialTab = getInitialTab(searchParams.get('tab'));
+  const [mountedTabs, setMountedTabs] = useState<Set<string>>(new Set([initialTab]));
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
   // null = settings not yet loaded (avoids the tab appearing late after an async flip from false → true)
   const [costCentersEnabled, setCostCentersEnabled] = useState<boolean | null>(null);
 
@@ -174,7 +187,14 @@ export default function CashflowPage() {
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     setMountedTabs(prev => new Set(prev).add(value));
+    router.replace(`${pathname}?tab=${value}`, { scroll: false });
   };
+
+  // Sync URL on mount so the initial tab is always reflected
+  useEffect(() => {
+    router.replace(`${pathname}?tab=${initialTab}`, { scroll: false });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const allTabs: TabDef[] = costCentersEnabled
     ? [...CASHFLOW_TABS_BASE, { value: 'cost-centers', label: 'Centri di Costo', shortLabel: 'C.Costo', icon: Layers }]
@@ -188,18 +208,31 @@ export default function CashflowPage() {
         description="Traccia e analizza le tue entrate e uscite nel tempo"
         separator={false}
         actions={
-          activeTab === 'tracking' ? (
+          <div className="flex items-center gap-2">
+            {activeTab === 'tracking' && (
+              <Button
+                size="sm"
+                disabled={isDemo}
+                aria-label={isDemo ? 'Nuova Spesa — non disponibile in modalità demo' : 'Nuova Spesa'}
+                title={isDemo ? 'Non disponibile in modalità demo' : undefined}
+                onClick={() => window.dispatchEvent(new CustomEvent('cashflow:add-expense'))}
+                className="hidden desktop:flex"
+              >
+                <Plus className="h-4 w-4" />
+                Nuova Spesa
+              </Button>
+            )}
             <Button
-              size="sm"
-              disabled={isDemo}
-              aria-label={isDemo ? 'Nuova Spesa — non disponibile in modalità demo' : 'Nuova Spesa'}
-              title={isDemo ? 'Non disponibile in modalità demo' : undefined}
-              onClick={() => window.dispatchEvent(new CustomEvent('cashflow:add-expense'))}
+              size="icon"
+              variant="ghost"
+              asChild
+              aria-label="Impostazioni Spese"
             >
-              <Plus className="h-4 w-4" />
-              Nuova Spesa
+              <Link href="/dashboard/settings?tab=spese">
+                <Settings className="h-4 w-4" />
+              </Link>
             </Button>
-          ) : undefined
+          </div>
         }
       />
 

@@ -23,7 +23,7 @@ export function PageHeader({
   separator = true,
 }: PageHeaderProps) {
   return (
-    <div className={cn(className)}>
+    <div className={cn(!separator && '-mb-0', className)}>
       {/* Mobile sticky navbar. Title sits at the bottom (items-end pb-2) to minimise
           the visual gap between it and the description text below. */}
       <div className="sticky top-0 z-20 -mx-4 px-4 h-14 flex items-end pb-2 justify-between bg-background/95 backdrop-blur-sm desktop:hidden">

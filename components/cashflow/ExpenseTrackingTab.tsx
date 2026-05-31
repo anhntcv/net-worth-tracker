@@ -63,6 +63,7 @@ import { PeriodPicker } from '@/components/ui/period-picker';
 import { type Period, periodToRange, periodLabel, currentMonthPeriod, isCurrentMonth } from '@/lib/utils/period';
 import { MultiSelect, type MultiSelectGroup } from '@/components/ui/multi-select';
 import { getExpenseDate } from '@/lib/utils/expenseHelpers';
+import { MobileFiltersDrawer } from '@/components/cashflow/MobileFiltersDrawer';
 
 // Coverage ratio → Italian health label (mirrors the same function in the dashboard overview page).
 function coverageHealthLabel(ratio: number): string {
@@ -359,6 +360,17 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
 
   // A filter is "active" (non-default) if period ≠ current month or any taxonomy filter is set.
   const hasActiveFilters = !isCurrentMonth(period) || selectedTypes.length > 0 || selectedCatIds.length > 0 || selectedSubCategoryId !== 'all' || searchQuery !== '' || selectedAccountId !== 'all';
+
+  // Count of active drawer-internal filters shown on the mobile "Filtri" badge.
+  // Period and search are excluded — they are always visible inline on mobile.
+  const mobileActiveFilterCount = useMemo(() => {
+    let count = 0;
+    if (searchQuery.trim() !== '') count++;
+    if (selectedTypes.length > 0 || selectedCatIds.length > 0) count++;
+    if (selectedSubCategoryId !== 'all') count++;
+    if (selectedAccountId !== 'all') count++;
+    return count;
+  }, [searchQuery, selectedTypes, selectedCatIds, selectedSubCategoryId, selectedAccountId]);
 
   // Derive period slice from allExpenses synchronously.
   const expenses = useMemo(() => {
@@ -804,8 +816,29 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
 
   return (
     <div className="space-y-4">
-      {/* ── Filters bar — always visible, commands the whole page ─────────── */}
-      <div className="flex flex-col gap-2">
+      {/* ── Mobile filter bar (search + period + drawer) — hidden on desktop ── */}
+      <MobileFiltersDrawer
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        period={period}
+        onPeriodChange={setPeriod}
+        availableYears={availableYears}
+        categoryMultiSelectOptions={categoryMultiSelectOptions}
+        multiSelectValue={multiSelectValue}
+        onCategoryChange={handleSelectCategories}
+        soloSelectedCategory={soloSelectedCategory}
+        subCategoryOptions={subCategoryOptions}
+        selectedSubCategoryId={selectedSubCategoryId}
+        onSubCategoryChange={setSelectedSubCategoryId}
+        accountOptions={accountOptions}
+        selectedAccountId={selectedAccountId}
+        onAccountChange={setSelectedAccountId}
+        activeFilterCount={mobileActiveFilterCount}
+        onReset={handleResetFilters}
+      />
+
+      {/* ── Desktop/tablet filter bar — hidden on mobile ──────────────────── */}
+      <div className="hidden desktop:flex flex-col gap-2">
         {/* Row 1: Search + Period */}
         <div className="flex flex-wrap items-center gap-2">
         {/* Ricerca testo */}
@@ -900,6 +933,7 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
         )}
         </div>
       </div>
+      {/* end desktop filter bar */}
 
       {/* Desktop: sticky KPI summary on left, transaction list on right */}
       <div className="desktop:grid desktop:grid-cols-[360px_1fr] desktop:gap-6 desktop:items-start space-y-6 desktop:space-y-0">
@@ -1071,6 +1105,28 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
               </Button>
             </div>
           </div>
+          {/* Mobile-only sort row */}
+          <div className="flex items-center justify-between gap-2 desktop:hidden mt-2">
+            <span className="text-xs text-muted-foreground shrink-0">Ordina</span>
+            <Select
+              value={mobileSortKey}
+              onValueChange={v => setMobileSortKey(v as typeof mobileSortKey)}
+            >
+              <SelectTrigger
+                className="h-8 w-auto min-w-[160px] text-xs text-muted-foreground"
+                aria-label="Ordina voci per"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="date-desc">Più recente</SelectItem>
+                <SelectItem value="date-asc">Meno recente</SelectItem>
+                <SelectItem value="amount-desc">Importo maggiore</SelectItem>
+                <SelectItem value="amount-asc">Importo minore</SelectItem>
+                <SelectItem value="category-asc">Categoria A→Z</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent className="px-5 pb-5">
           {/* Desktop: Table */}
@@ -1098,27 +1154,6 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
               </div>
             ) : (
               <>
-                {/* Sort selector for mobile/tablet */}
-                <div className="flex items-center justify-end mb-3">
-                  <Select
-                    value={mobileSortKey}
-                    onValueChange={v => setMobileSortKey(v as typeof mobileSortKey)}
-                  >
-                    <SelectTrigger
-                      className="h-8 w-auto min-w-[160px] text-xs text-muted-foreground"
-                      aria-label="Ordina voci per"
-                    >
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="date-desc">Più recente</SelectItem>
-                      <SelectItem value="date-asc">Meno recente</SelectItem>
-                      <SelectItem value="amount-desc">Importo maggiore</SelectItem>
-                      <SelectItem value="amount-asc">Importo minore</SelectItem>
-                      <SelectItem value="category-asc">Categoria A→Z</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
                 <div className="divide-y divide-border">
                   {mobileSortedExpenses.slice(0, mobileShowCount).map(expense => {
                     const catMeta = categoryMetaMap.get(expense.categoryId);
