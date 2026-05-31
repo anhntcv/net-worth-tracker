@@ -12,6 +12,7 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
+import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { cn } from '@/lib/utils';
 import { cachedFormatCurrencyEUR } from '@/lib/utils/formatters';
 import { getItalyDate } from '@/lib/utils/dateHelpers';
@@ -459,107 +460,105 @@ export function CashflowTrackingMobile({
         ]}
       />
 
-      {/* ── 3. KPI carousel — naked chips with 3D shadow, no outer Card ────── */}
-      {/*       Negative margin lets chips bleed to the page edge on small screens */}
+      {/* ── 3. KPI carousel — shadcn Carousel with Embla ──────────────────── */}
       <div className="-mx-4 sm:-mx-6">
-        <div
-          className="flex gap-3 overflow-x-auto snap-x snap-mandatory px-8 sm:px-10 pt-2 pb-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          role="list"
+        <Carousel
+          opts={{ align: 'start', dragFree: true, containScroll: false }}
+          className="w-full"
           aria-label="Riepilogo cashflow"
         >
-          {/* Entrate */}
-          <div
-            role="listitem"
-            className={cn('snap-start shrink-0 w-40 bg-card rounded-2xl p-4 ring-1 ring-border/20 ml-2', CHIP_SHADOW)}
-          >
-            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Entrate</p>
-            <p className="text-[21px] font-bold font-mono tabular-nums mt-1.5 leading-none text-emerald-600 dark:text-emerald-400">
-              {cachedFormatCurrencyEUR(income)}
-            </p>
-            {incomeDelta !== null && incomeDelta !== undefined ? (
-              <p className={cn('text-[11px] font-medium mt-1.5 leading-none', incomeDelta >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive')}>
-                {incomeDelta >= 0 ? '↑' : '↓'} {Math.abs(incomeDelta).toFixed(1)}% vs mese prec.
-              </p>
-            ) : (
-              <p className="text-[11px] text-muted-foreground mt-1.5 leading-none opacity-50">vs mese prec.</p>
-            )}
-          </div>
+          <CarouselContent viewportClassName="px-6 py-3 pb-6" className="items-stretch">
+            {/* Entrate */}
+            <CarouselItem className="basis-[160px] pl-3">
+              <div className={cn('h-full bg-card rounded-2xl p-4 ring-1 ring-border/20', CHIP_SHADOW)}>
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Entrate</p>
+                <p className="text-[21px] font-bold font-mono tabular-nums mt-1.5 leading-none text-emerald-600 dark:text-emerald-400">
+                  {cachedFormatCurrencyEUR(income)}
+                </p>
+                {incomeDelta !== null && incomeDelta !== undefined ? (
+                  <p className={cn('text-[11px] font-medium mt-1.5 leading-none', incomeDelta > 0 ? 'text-emerald-600 dark:text-emerald-400' : incomeDelta < 0 ? 'text-destructive' : 'text-muted-foreground')}>
+                    {incomeDelta > 0 ? '↑' : incomeDelta < 0 ? '↓' : '→'} {Math.abs(incomeDelta).toFixed(1)}% vs mese prec.
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-muted-foreground mt-1.5 leading-none opacity-50">vs mese prec.</p>
+                )}
+              </div>
+            </CarouselItem>
 
-          {/* Spese */}
-          <div
-            role="listitem"
-            className={cn('snap-start shrink-0 w-40 bg-card rounded-2xl p-4 ring-1 ring-border/20', CHIP_SHADOW)}
-          >
-            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Spese</p>
-            <p className="text-[21px] font-bold font-mono tabular-nums mt-1.5 leading-none text-destructive">
-              {cachedFormatCurrencyEUR(Math.abs(expenses))}
-            </p>
-            {expensesDelta !== null && expensesDelta !== undefined ? (
-              <p className={cn('text-[11px] font-medium mt-1.5 leading-none', expensesDelta <= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive')}>
-                {expensesDelta >= 0 ? '↑' : '↓'} {Math.abs(expensesDelta).toFixed(1)}% vs mese prec.
-              </p>
-            ) : (
-              <p className="text-[11px] text-muted-foreground mt-1.5 leading-none opacity-50">vs mese prec.</p>
-            )}
-          </div>
+            {/* Spese */}
+            <CarouselItem className="basis-[160px] pl-3">
+              <div className={cn('h-full bg-card rounded-2xl p-4 ring-1 ring-border/20', CHIP_SHADOW)}>
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Spese</p>
+                <p className="text-[21px] font-bold font-mono tabular-nums mt-1.5 leading-none text-destructive">
+                  {cachedFormatCurrencyEUR(Math.abs(expenses))}
+                </p>
+                {expensesDelta !== null && expensesDelta !== undefined ? (
+                  <p className={cn('text-[11px] font-medium mt-1.5 leading-none', expensesDelta < 0 ? 'text-emerald-600 dark:text-emerald-400' : expensesDelta > 0 ? 'text-destructive' : 'text-muted-foreground')}>
+                    {expensesDelta > 0 ? '↑' : expensesDelta < 0 ? '↓' : '→'} {Math.abs(expensesDelta).toFixed(1)}% vs mese prec.
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-muted-foreground mt-1.5 leading-none opacity-50">vs mese prec.</p>
+                )}
+              </div>
+            </CarouselItem>
 
-          {/* Risparmio Netto */}
-          <div
-            role="listitem"
-            className={cn('snap-start shrink-0 w-40 bg-card rounded-2xl p-4 ring-1 ring-border/20', CHIP_SHADOW)}
-          >
-            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Risparmio Netto</p>
-            <p className={cn(
-              'text-[21px] font-bold font-mono tabular-nums mt-1.5 leading-none',
-              net >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive',
-            )}>
-              {net >= 0 ? '+' : ''}{cachedFormatCurrencyEUR(net)}
-            </p>
-            <p className="text-[11px] text-muted-foreground mt-1.5 leading-none">
-              Tasso {savingsRate.toFixed(1)}%
-            </p>
-          </div>
+            {/* Risparmio Netto */}
+            <CarouselItem className="basis-[160px] pl-3">
+              <div className={cn('h-full bg-card rounded-2xl p-4 ring-1 ring-border/20', CHIP_SHADOW)}>
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Risparmio Netto</p>
+                <p className={cn(
+                  'text-[21px] font-bold font-mono tabular-nums mt-1.5 leading-none',
+                  net >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive',
+                )}>
+                  {net >= 0 ? '+' : ''}{cachedFormatCurrencyEUR(net)}
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-1.5 leading-none">
+                  Tasso {savingsRate.toFixed(1)}%
+                </p>
+              </div>
+            </CarouselItem>
 
-          {/* Rapporto */}
-          <div
-            role="listitem"
-            className={cn('snap-start shrink-0 w-40 bg-card rounded-2xl p-4 ring-1 ring-border/20', CHIP_SHADOW)}
-          >
-            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Rapporto</p>
-            <p className={cn(
-              'text-[21px] font-bold font-mono tabular-nums mt-1.5 leading-none',
-              ratio !== null && ratio >= 1
-                ? 'text-emerald-600 dark:text-emerald-400'
-                : ratio !== null
-                  ? 'text-destructive'
-                  : 'text-foreground',
-            )}>
-              {ratioDisplay}
-            </p>
-            <p className="text-[11px] text-muted-foreground mt-1.5 leading-none">
-              {ratioLabel ?? 'Nessun dato'}
-            </p>
-          </div>
+            {/* Rapporto */}
+            <CarouselItem className="basis-[160px] pl-3">
+              <div className={cn('h-full bg-card rounded-2xl p-4 ring-1 ring-border/20', CHIP_SHADOW)}>
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Rapporto</p>
+                <p className={cn(
+                  'text-[21px] font-bold font-mono tabular-nums mt-1.5 leading-none',
+                  ratio !== null && ratio >= 1
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : ratio !== null
+                      ? 'text-destructive'
+                      : 'text-foreground',
+                )}>
+                  {ratioDisplay}
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-1.5 leading-none">
+                  {ratioLabel ?? 'Nessun dato'}
+                </p>
+              </div>
+            </CarouselItem>
 
-          {/* Categorie — opens drawer */}
-          <button
-            type="button"
-            role="listitem"
-            onClick={() => setCatDrawerOpen(true)}
-            className={cn(
-              'snap-start shrink-0 w-40 bg-card rounded-2xl p-4 ring-1 ring-border/20 text-left',
-              'active:scale-[0.97] transition-transform duration-100',
-              CHIP_SHADOW,
-            )}
-            aria-label="Apri dettaglio categorie"
-          >
-            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Categorie</p>
-            <p className="text-[21px] font-bold tabular-nums mt-1.5 leading-none text-foreground">
-              {expenseCategories.length}
-            </p>
-            <p className="text-[11px] text-muted-foreground mt-1.5 leading-none">Vedi dettaglio →</p>
-          </button>
-        </div>
+            {/* Categorie — opens drawer */}
+            <CarouselItem className="basis-[160px] pl-3">
+              <button
+                type="button"
+                onClick={() => setCatDrawerOpen(true)}
+                className={cn(
+                  'h-full w-full bg-card rounded-2xl p-4 ring-1 ring-border/20 text-left',
+                  'active:scale-[0.97] transition-transform duration-100',
+                  CHIP_SHADOW,
+                )}
+                aria-label="Apri dettaglio categorie"
+              >
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Categorie</p>
+                <p className="text-[21px] font-bold tabular-nums mt-1.5 leading-none text-foreground">
+                  {expenseCategories.length}
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-1.5 leading-none">Vedi dettaglio →</p>
+              </button>
+            </CarouselItem>
+          </CarouselContent>
+        </Carousel>
       </div>
 
       {/* ── 4. Transaction list ─────────────────────────────────────────────── */}

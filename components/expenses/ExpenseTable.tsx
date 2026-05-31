@@ -216,6 +216,15 @@ export function ExpenseTable({ expenses, onEdit, onRefresh, isDemo = false, hasA
     return EXPENSE_TYPE_LABELS[type];
   };
 
+  // When all visible expenses share the same type, the badge adds no information.
+  // Compute the set of distinct types in the full (non-paginated) filtered list
+  // so the column stays consistent as the user pages through.
+  const uniqueExpenseTypes = useMemo(
+    () => new Set(expenses.map(e => e.type)),
+    [expenses],
+  );
+  const singleType = uniqueExpenseTypes.size === 1;
+
   // Badge colors keyed by expense type — theme-aware via CSS variable references.
   // chart-1: income (green-toned in most themes), chart-2: fixed, chart-4: variable, chart-3: debt.
   // color-mix() at 12% for background, 35% for border; text uses the raw chart var directly.
@@ -437,13 +446,19 @@ export function ExpenseTable({ expenses, onEdit, onRefresh, isDemo = false, hasA
                 </div>
               </TableCell>
               <TableCell>
-                <span
-                  className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getTypeBadgeColor(
-                    expense.type
-                  )}`}
-                >
-                  {getTypeLabel(expense.type)}
-                </span>
+                {singleType ? (
+                  <span className="text-xs text-muted-foreground">
+                    {getTypeLabel(expense.type)}
+                  </span>
+                ) : (
+                  <span
+                    className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getTypeBadgeColor(
+                      expense.type
+                    )}`}
+                  >
+                    {getTypeLabel(expense.type)}
+                  </span>
+                )}
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">

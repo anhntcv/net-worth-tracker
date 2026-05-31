@@ -173,10 +173,11 @@ export function CashflowHeroCard({
                   {cachedFormatCurrencyEUR(income, true)}
                 </p>
                 {incomeDelta != null && (() => {
-                  const pos = incomeDelta >= 0;
+                  const isZero = incomeDelta === 0;
+                  const pos = incomeDelta > 0;
                   return (
-                    <p className={cn('text-[12px] font-mono mt-1.5', pos ? 'text-emerald-500 dark:text-emerald-400' : 'text-destructive')}>
-                      {pos ? '+' : ''}{incomeDelta.toFixed(1)}% vs mese scorso
+                    <p className={cn('text-[12px] font-mono mt-1.5', isZero ? 'text-muted-foreground' : pos ? 'text-emerald-500 dark:text-emerald-400' : 'text-destructive')}>
+                      {isZero ? '→' : pos ? '+' : ''}{incomeDelta.toFixed(1)}% vs mese scorso
                     </p>
                   );
                 })()}
@@ -189,10 +190,11 @@ export function CashflowHeroCard({
                   {cachedFormatCurrencyEUR(expenses, true)}
                 </p>
                 {expensesDelta != null && (() => {
-                  const pos = expensesDelta >= 0;
+                  const isZero = expensesDelta === 0;
+                  const pos = expensesDelta > 0;
                   return (
-                    <p className={cn('text-[12px] font-mono mt-1.5', pos ? 'text-destructive' : 'text-emerald-500 dark:text-emerald-400')}>
-                      {pos ? '+' : ''}{expensesDelta.toFixed(1)}% vs mese scorso
+                    <p className={cn('text-[12px] font-mono mt-1.5', isZero ? 'text-muted-foreground' : pos ? 'text-destructive' : 'text-emerald-500 dark:text-emerald-400')}>
+                      {isZero ? '→' : pos ? '+' : ''}{expensesDelta.toFixed(1)}% vs mese scorso
                     </p>
                   );
                 })()}
