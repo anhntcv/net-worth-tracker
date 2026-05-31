@@ -296,7 +296,7 @@ export function ExpenseTable({ expenses, onEdit, onRefresh, isDemo = false }: Ex
    */
   useEffect(() => {
     setSortCol(null);
-  }, [expenses]);
+  }, [expenses.length]);
 
   const handlePreviousPage = () => {
     setCurrentPage((prev: number) => Math.max(1, prev - 1));

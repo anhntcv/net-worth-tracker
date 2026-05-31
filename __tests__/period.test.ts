@@ -9,6 +9,7 @@ import {
   parseDateInput,
   type Period,
 } from '@/lib/utils/period';
+import { getItalyYear, getItalyMonth } from '@/lib/utils/dateHelpers';
 
 // ─── periodLabel ──────────────────────────────────────────────────────────────
 
@@ -114,13 +115,12 @@ describe('periodToRange', () => {
 // ─── currentMonthPeriod ───────────────────────────────────────────────────────
 
 describe('currentMonthPeriod', () => {
-  it('returns a month period matching the current date', () => {
-    const now = new Date();
+  it('returns a month period matching the current Italian date', () => {
     const p = currentMonthPeriod();
     expect(p.kind).toBe('month');
     if (p.kind === 'month') {
-      expect(p.year).toBe(now.getFullYear());
-      expect(p.month).toBe(now.getMonth() + 1);
+      expect(p.year).toBe(getItalyYear());
+      expect(p.month).toBe(getItalyMonth());
     }
   });
 });
@@ -128,23 +128,21 @@ describe('currentMonthPeriod', () => {
 // ─── isCurrentMonth ───────────────────────────────────────────────────────────
 
 describe('isCurrentMonth', () => {
-  const now = new Date();
-
-  it('returns true for the current month', () => {
-    expect(isCurrentMonth({ kind: 'month', year: now.getFullYear(), month: now.getMonth() + 1 })).toBe(true);
+  it('returns true for the current Italian month', () => {
+    expect(isCurrentMonth({ kind: 'month', year: getItalyYear(), month: getItalyMonth() })).toBe(true);
   });
 
   it('returns false for a different month in the same year', () => {
-    const otherMonth = now.getMonth() === 0 ? 2 : 1;
-    expect(isCurrentMonth({ kind: 'month', year: now.getFullYear(), month: otherMonth })).toBe(false);
+    const otherMonth = getItalyMonth() === 1 ? 2 : 1;
+    expect(isCurrentMonth({ kind: 'month', year: getItalyYear(), month: otherMonth })).toBe(false);
   });
 
   it('returns false for a past year', () => {
-    expect(isCurrentMonth({ kind: 'month', year: now.getFullYear() - 1, month: now.getMonth() + 1 })).toBe(false);
+    expect(isCurrentMonth({ kind: 'month', year: getItalyYear() - 1, month: getItalyMonth() })).toBe(false);
   });
 
   it('returns false for a year period', () => {
-    expect(isCurrentMonth({ kind: 'year', year: now.getFullYear() })).toBe(false);
+    expect(isCurrentMonth({ kind: 'year', year: getItalyYear() })).toBe(false);
   });
 
   it('returns false for a custom period', () => {
@@ -156,44 +154,42 @@ describe('isCurrentMonth', () => {
 // ─── isPrevMonth ──────────────────────────────────────────────────────────────
 
 describe('isPrevMonth', () => {
-  it('returns true for the previous calendar month', () => {
-    const prev = new Date();
-    prev.setDate(1);
-    prev.setMonth(prev.getMonth() - 1);
-    expect(isPrevMonth({ kind: 'month', year: prev.getFullYear(), month: prev.getMonth() + 1 })).toBe(true);
+  it('returns true for the previous Italian calendar month', () => {
+    // Compute prev month in Italy time.
+    const prevYear = getItalyMonth() === 1 ? getItalyYear() - 1 : getItalyYear();
+    const prevMonth = getItalyMonth() === 1 ? 12 : getItalyMonth() - 1;
+    expect(isPrevMonth({ kind: 'month', year: prevYear, month: prevMonth })).toBe(true);
   });
 
-  it('returns false for the current month', () => {
-    const now = new Date();
-    expect(isPrevMonth({ kind: 'month', year: now.getFullYear(), month: now.getMonth() + 1 })).toBe(false);
+  it('returns false for the current Italian month', () => {
+    expect(isPrevMonth({ kind: 'month', year: getItalyYear(), month: getItalyMonth() })).toBe(false);
   });
 
   it('returns false for year/custom periods', () => {
-    const now = new Date();
-    expect(isPrevMonth({ kind: 'year', year: now.getFullYear() })).toBe(false);
-    expect(isPrevMonth({ kind: 'custom', from: now, to: now })).toBe(false);
+    const d = new Date();
+    expect(isPrevMonth({ kind: 'year', year: getItalyYear() })).toBe(false);
+    expect(isPrevMonth({ kind: 'custom', from: d, to: d })).toBe(false);
   });
 });
 
 // ─── isCurrentYear ────────────────────────────────────────────────────────────
 
 describe('isCurrentYear', () => {
-  const now = new Date();
-
-  it('returns true for the current year', () => {
-    expect(isCurrentYear({ kind: 'year', year: now.getFullYear() })).toBe(true);
+  it('returns true for the current Italian year', () => {
+    expect(isCurrentYear({ kind: 'year', year: getItalyYear() })).toBe(true);
   });
 
   it('returns false for past years', () => {
-    expect(isCurrentYear({ kind: 'year', year: now.getFullYear() - 1 })).toBe(false);
+    expect(isCurrentYear({ kind: 'year', year: getItalyYear() - 1 })).toBe(false);
   });
 
   it('returns false for a month period', () => {
-    expect(isCurrentYear({ kind: 'month', year: now.getFullYear(), month: 1 })).toBe(false);
+    expect(isCurrentYear({ kind: 'month', year: getItalyYear(), month: 1 })).toBe(false);
   });
 
   it('returns false for a custom period', () => {
-    expect(isCurrentYear({ kind: 'custom', from: now, to: now })).toBe(false);
+    const d = new Date();
+    expect(isCurrentYear({ kind: 'custom', from: d, to: d })).toBe(false);
   });
 });
 

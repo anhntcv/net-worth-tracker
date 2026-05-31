@@ -366,17 +366,23 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
    * Export the current filtered view as a semicolon-delimited CSV.
    * Semicolon delimiter is standard in Italian Excel. BOM ensures UTF-8 recognition.
    */
+  // Sanitize a cell value against CSV formula injection (OWASP A03).
+  // Strings starting with =, +, -, @, TAB, or CR are prefixed with a single quote,
+  // which Excel/LibreOffice treat as a text literal, not a formula.
+  const sanitizeCSVCell = (s: string): string =>
+    /^[=+\-@\t\r]/.test(s) ? `'${s}` : s;
+
   const handleExportCSV = () => {
     const headers = ['Data', 'Tipo', 'Categoria', 'Sottocategoria', 'Importo (\u20ac)', 'Note', 'Conto', 'Link'];
     const rows = filteredExpenses.map(e => [
       format(getExpenseDate(e.date), 'dd/MM/yyyy'),
       EXPENSE_TYPE_LABELS[e.type] || e.type,
-      e.categoryName,
-      e.subCategoryName || '',
+      sanitizeCSVCell(e.categoryName),
+      sanitizeCSVCell(e.subCategoryName || ''),
       e.amount.toFixed(2).replace('.', ','),
-      e.notes || '',
-      (e.linkedCashAssetId ? (assetNameMap.get(e.linkedCashAssetId) ?? '') : ''),
-      e.link || '',
+      sanitizeCSVCell(e.notes || ''),
+      sanitizeCSVCell(e.linkedCashAssetId ? (assetNameMap.get(e.linkedCashAssetId) ?? '') : ''),
+      sanitizeCSVCell(e.link || ''),
     ]);
     const csvContent = [headers, ...rows]
       .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(';'))
@@ -795,6 +801,7 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
             placeholder="Tutte le categorie"
             searchable
             hideSelectAll
+            singleLine
             maxCount={2}
             className="w-full"
             popoverClassName="w-[280px] desktop:w-[320px]"
