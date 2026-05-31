@@ -22,11 +22,11 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Camera, Receipt, TrendingDown, TrendingUp } from 'lucide-react';
+import { CashflowHeroCard } from '@/components/cashflow/CashflowHeroCard';
 import { toast } from 'sonner';
 import { useCreateSnapshot } from '@/lib/hooks/useSnapshots';
 import { useDashboardOverview } from '@/lib/hooks/useDashboardOverview';
 import { useExpenseCategories } from '@/lib/hooks/useExpenses';
-import { CategoryBreakdownList } from '@/components/cashflow/CategoryBreakdownList';
 import { SavingsRateBadge } from '@/components/ui/SavingsRateBadge';
 import { useMediaQuery } from '@/lib/hooks/useMediaQuery';
 import { getItalyDate, getItalyMonthYear } from '@/lib/utils/dateHelpers';
@@ -62,14 +62,6 @@ const MONTH_NAMES_IT = [
   'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
   'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre',
 ];
-
-// Coverage ratio → Italian health label.
-function coverageHealthLabel(ratio: number): string {
-  if (ratio >= 2.0) return 'Salute ottima';
-  if (ratio >= 1.3) return 'Salute buona';
-  if (ratio >= 1.0) return 'In pareggio';
-  return 'In deficit';
-}
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -621,13 +613,12 @@ export default function DashboardPage() {
         );
       })()}
 
-      {/* ── CASHFLOW CARD — full-width, unified for mobile + desktop ── */}
+      {/* ── CASHFLOW CARD ── */}
       {overview?.expenseStats && (() => {
         const { income, expenses, net } = overview.expenseStats.currentMonth;
         const { income: incomeDelta, expenses: expensesDelta } = overview.expenseStats.delta;
         const { month: italyMonth, year: italyYear } = getItalyMonthYear();
         const monthLabel = `${MONTH_NAMES_IT[italyMonth - 1].toUpperCase()} ${italyYear}`;
-        const ratio = coverageRatio;
 
         return (
           <motion.div
@@ -637,127 +628,24 @@ export default function DashboardPage() {
             initial="hidden"
             animate="visible"
           >
-            <Card className="rounded-2xl">
-              <CardContent className="p-[22px]">
-                {/* Header */}
-                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-3">
-                  Cashflow · {monthLabel}
-                </p>
-
-                {/* 4 KPI chips */}
-                <div className="grid grid-cols-2 desktop:grid-cols-4 gap-3">
-                  {/* ENTRATE */}
-                  <div className="bg-muted/40 rounded-xl p-3.5">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground mb-1.5">
-                      Entrate
-                    </p>
-                    <p className="text-[22px] font-bold font-mono tabular-nums text-green-500 dark:text-green-400 leading-none">
-                      {cachedFormatCurrencyEUR(income, true)}
-                    </p>
-                    {(() => {
-                      const pos = incomeDelta >= 0;
-                      return (
-                        <p className={cn('text-[12px] font-mono mt-1.5', pos ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400')}>
-                          {pos ? '+' : ''}{incomeDelta.toFixed(1)}% vs mese scorso
-                        </p>
-                      );
-                    })()}
-                  </div>
-
-                  {/* SPESE */}
-                  <div className="bg-muted/40 rounded-xl p-3.5">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground mb-1.5">
-                      Spese
-                    </p>
-                    <p className="text-[22px] font-bold font-mono tabular-nums text-red-500 dark:text-red-400 leading-none">
-                      {cachedFormatCurrencyEUR(expenses, true)}
-                    </p>
-                    {(() => {
-                      // For expenses: +% is negative (spent more) → red
-                      const pos = expensesDelta >= 0;
-                      return (
-                        <p className={cn('text-[12px] font-mono mt-1.5', pos ? 'text-red-500 dark:text-red-400' : 'text-green-500 dark:text-green-400')}>
-                          {pos ? '+' : ''}{expensesDelta.toFixed(1)}% vs mese scorso
-                        </p>
-                      );
-                    })()}
-                  </div>
-
-                  {/* RISPARMIO */}
-                  <div className="bg-muted/40 rounded-xl p-3.5">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground mb-1.5">
-                      Risparmio
-                    </p>
-                    <p className={cn(
-                      'text-[22px] font-bold font-mono tabular-nums leading-none',
-                      net >= 0 ? 'text-foreground' : 'text-red-500 dark:text-red-400'
-                    )}>
-                      {cachedFormatCurrencyEUR(net, true)}
-                    </p>
-                    {income > 0 && (
-                      <p className="text-[12px] text-muted-foreground mt-1.5">
-                        {savingsRate}% del reddito
-                      </p>
-                    )}
-                  </div>
-
-                  {/* RAPPORTO */}
-                  <div className="bg-muted/40 rounded-xl p-3.5">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground mb-1.5">
-                      Rapporto
-                    </p>
-                    <p className="text-[22px] font-bold font-mono tabular-nums text-foreground leading-none">
-                      {ratio !== null ? `${ratio.toFixed(2)}×` : '—'}
-                    </p>
-                    {ratio !== null && (
-                      <p className="text-[12px] text-muted-foreground mt-1.5">
-                        {coverageHealthLabel(ratio)}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Category breakdowns — only shown when there is data */}
-                {(overview.expenseStats.topExpenseCategories.length > 0 || overview.expenseStats.topIncomeCategories.length > 0) && (
-                  <>
-                    <div className="mt-4 border-t border-border" />
-                    <div className="grid desktop:grid-cols-2 gap-x-8 gap-y-4 mt-4">
-
-                      {/* SPESE PER CATEGORIA */}
-                      {overview.expenseStats.topExpenseCategories.length > 0 && (
-                        <div>
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground mb-3">
-                            Spese per Categoria
-                          </p>
-                          <CategoryBreakdownList
-                            items={overview.expenseStats.topExpenseCategories}
-                            categories={expenseCategories}
-                          />
-                        </div>
-                      )}
-
-                      {/* ENTRATE PER CATEGORIA */}
-                      {overview.expenseStats.topIncomeCategories.length > 0 && (
-                        <div>
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground mb-3">
-                            Entrate per Categoria
-                          </p>
-                          <CategoryBreakdownList
-                            items={overview.expenseStats.topIncomeCategories}
-                            categories={expenseCategories}
-                          />
-                        </div>
-                      )}
-
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
+            <CashflowHeroCard
+              monthLabel={monthLabel}
+              income={income}
+              expenses={expenses}
+              net={net}
+              ratio={coverageRatio}
+              incomeDelta={incomeDelta}
+              expensesDelta={expensesDelta}
+              savingsRate={savingsRate}
+              expenseCategories={overview.expenseStats.topExpenseCategories}
+              incomeCategories={overview.expenseStats.topIncomeCategories}
+              categories={expenseCategories}
+              showAnalysisBanner
+              className="rounded-2xl"
+            />
           </motion.div>
         );
       })()}
-
       {/* No cashflow data fallback */}
       {!overview?.expenseStats && (
         <motion.div

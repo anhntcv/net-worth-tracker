@@ -48,14 +48,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, X, Trash2, Pencil, Search, Download, ArrowRightLeft } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, X, Search, Download } from 'lucide-react';
+
 import { ExpenseDialog } from '@/components/expenses/ExpenseDialog';
 import { ExpenseTable } from '@/components/expenses/ExpenseTable';
-import { getLazyIcon } from '@/components/expenses/IconPickerPopover';
+
 import { CategoryBreakdownList } from '@/components/cashflow/CategoryBreakdownList';
+import { CashflowHeroCard } from '@/components/cashflow/CashflowHeroCard';
 import { Badge } from '@/components/ui/badge';
-import { Suspense } from 'react';
+
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -63,194 +64,7 @@ import { PeriodPicker } from '@/components/ui/period-picker';
 import { type Period, periodToRange, periodLabel, currentMonthPeriod, isCurrentMonth } from '@/lib/utils/period';
 import { MultiSelect, type MultiSelectGroup } from '@/components/ui/multi-select';
 import { getExpenseDate } from '@/lib/utils/expenseHelpers';
-import { MobileFiltersDrawer } from '@/components/cashflow/MobileFiltersDrawer';
-
-// Coverage ratio → Italian health label (mirrors the same function in the dashboard overview page).
-function coverageHealthLabel(ratio: number): string {
-  if (ratio >= 2.0) return 'Salute ottima';
-  if (ratio >= 1.3) return 'Salute buona';
-  if (ratio >= 1.0) return 'In pareggio';
-  return 'In deficit';
-}
-
-// Tailwind dot-color classes keyed by expense type for the mobile list rows.
-// All four entries use CSS variable / semantic token references so they remain
-// theme-aware across all 6 colour themes. `income` uses emerald-* (semantic
-// positive) instead of green-* for parity with the project token convention.
-const TYPE_DOT_CLASS: Record<ExpenseType, string> = {
-  income: 'bg-emerald-500 dark:bg-emerald-400',
-  fixed: 'bg-[var(--chart-2)]',
-  variable: 'bg-[var(--chart-4)]',
-  debt: 'bg-[var(--chart-3)]',
-  transfer: 'bg-[var(--chart-5)]',
-};
-
-// ─── MobileExpenseRow ─────────────────────────────────────────────────────────
-
-interface MobileExpenseRowProps {
-  expense: Expense;
-  isExpanded: boolean;
-  onToggleExpand: (id: string) => void;
-  onEdit: (expense: Expense) => void;
-  onDelete: (expense: Expense) => void;
-  isPendingDelete: boolean;
-  isDemo: boolean;
-  categoryIcon?: string;
-  categoryColor?: string;
-}
-
-/**
- * Flat list row for mobile expense display (Trade Republic divide-y style).
- *
- * Interaction pattern:
- * - Tapping the row body toggles an inline action area (Modifica + Elimina).
- * - Elimina reuses the parent's 2-click arm pattern — isPendingDelete drives
- *   the visual "confirm" state; actual logic lives in the parent handler.
- * - Complex expenses (installments/recurring) open an AlertDialog on first tap
- *   of Elimina, so no 2-click arm is needed; the parent handles the distinction.
- */
-function MobileExpenseRow({
-  expense,
-  isExpanded,
-  onToggleExpand,
-  onEdit,
-  onDelete,
-  isPendingDelete,
-  isDemo,
-  categoryIcon,
-  categoryColor,
-}: MobileExpenseRowProps) {
-  const date = getExpenseDate(expense.date);
-  const isIncome = expense.type === 'income';
-  const isTransfer = expense.type === 'transfer';
-
-  // "20/5" short date shown in the subtitle (no year, no zero-padding).
-  const shortDate = format(date, 'd/M');
-
-  // Subtitle: category · subcategory · date — omit subcategory when absent.
-  const subtitle = [expense.categoryName, expense.subCategoryName || null, shortDate]
-    .filter(Boolean)
-    .join(' · ');
-
-  // Title: user-entered notes take priority; fall back to category name.
-  const title = expense.notes?.trim() || expense.categoryName;
-
-  const amountLabel = `${isIncome ? '+' : isTransfer ? '' : ''}${cachedFormatCurrencyEUR(Math.abs(expense.amount))}`;
-
-  return (
-    <div className="py-3">
-      {/* Tappable row — shows dot, title, subtitle and amount */}
-      <button
-        type="button"
-        className="w-full flex items-center gap-3 text-left"
-        onClick={() => onToggleExpand(expense.id)}
-        aria-expanded={isExpanded}
-      >
-        {/* Category icon or type dot */}
-        {(() => {
-          const CatIcon = categoryIcon ? getLazyIcon(categoryIcon) : null;
-          if (CatIcon) {
-            return (
-              <div
-                className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-                style={{ backgroundColor: categoryColor ? `${categoryColor}20` : 'var(--muted)' }}
-              >
-                <Suspense fallback={<span className={cn('w-2 h-2 rounded-full', TYPE_DOT_CLASS[expense.type] ?? 'bg-muted-foreground')} />}>
-                  <CatIcon className="w-3.5 h-3.5" style={{ color: categoryColor || 'var(--muted-foreground)' }} aria-hidden="true" />
-                </Suspense>
-              </div>
-            );
-          }
-          return (
-            <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: categoryColor ? `${categoryColor}20` : 'var(--muted)' }}
-            >
-              <span
-                className={cn('w-2 h-2 rounded-full flex-shrink-0', TYPE_DOT_CLASS[expense.type] ?? 'bg-muted-foreground')}
-              />
-            </div>
-          );
-        })()}
-
-        {/* Title + badges + subtitle */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <span className="text-[14px] font-medium text-foreground truncate">{title}</span>
-            {expense.isInstallment && expense.installmentNumber && expense.installmentTotal && (
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 flex-shrink-0">
-                {expense.installmentNumber}/{expense.installmentTotal}
-              </Badge>
-            )}
-            {expense.isRecurring && !expense.isInstallment && (
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 flex-shrink-0">
-                Ric.
-              </Badge>
-            )}
-          </div>
-          <p className="text-[12px] text-muted-foreground truncate mt-0.5">{subtitle}</p>
-        </div>
-
-        {/* Amount — positive income uses emerald semantic token; expenses use
-            text-destructive so both adapt to the active colour theme */}
-        <span
-          className={cn(
-            'text-[14px] font-bold font-mono tabular-nums flex-shrink-0',
-            isIncome
-              ? 'text-emerald-600 dark:text-emerald-400'
-              : isTransfer
-                ? 'text-muted-foreground'
-                : 'text-destructive',
-          )}
-        >
-          {amountLabel}
-        </span>
-      </button>
-
-      {/* Inline action area — animated height 0 → auto on expand */}
-      <AnimatePresence initial={false}>
-        {isExpanded && (
-          <motion.div
-            key="actions"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.18, ease: 'easeInOut' }}
-            className="overflow-hidden"
-          >
-            <div className="flex gap-2 mt-3 pl-5">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onEdit(expense)}
-                disabled={isDemo}
-                aria-label={isDemo ? 'Modifica — non disponibile in modalità demo' : 'Modifica voce'}
-                title={isDemo ? 'Non disponibile in modalità demo' : undefined}
-                className="flex-1 h-9"
-              >
-                <Pencil className="h-3.5 w-3.5 mr-1.5" />
-                Modifica
-              </Button>
-              {/* Delete: first tap arms (destructive style), second tap confirms */}
-              <Button
-                variant={isPendingDelete ? 'destructive' : 'outline'}
-                size="sm"
-                onClick={() => onDelete(expense)}
-                disabled={isDemo}
-                aria-label={isDemo ? 'Elimina — non disponibile in modalità demo' : 'Elimina voce'}
-                title={isDemo ? 'Non disponibile in modalità demo' : undefined}
-                className="flex-1 h-9"
-              >
-                <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-                {isPendingDelete ? 'Conferma' : 'Elimina'}
-              </Button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
+import { CashflowTrackingMobile } from '@/components/cashflow/CashflowTrackingMobile';
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
@@ -319,7 +133,6 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
 
   // Conto corrente filter — 'all' means no account filter applied.
   const [selectedAccountId, setSelectedAccountId] = useState<string>('all');
-
 
   // Generate available years from ALL expenses (not filtered)
   const availableYears = useMemo(() => {
@@ -816,13 +629,14 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
 
   return (
     <div className="space-y-4">
-      {/* ── Mobile filter bar (search + period + drawer) — hidden on desktop ── */}
-      <MobileFiltersDrawer
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
+      {/* ── MOBILE: dedicated mobile template (hidden on desktop) ────────────── */}
+      <CashflowTrackingMobile
+        className="desktop:hidden"
         period={period}
         onPeriodChange={setPeriod}
         availableYears={availableYears}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
         categoryMultiSelectOptions={categoryMultiSelectOptions}
         multiSelectValue={multiSelectValue}
         onCategoryChange={handleSelectCategories}
@@ -835,9 +649,35 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
         onAccountChange={setSelectedAccountId}
         activeFilterCount={mobileActiveFilterCount}
         onReset={handleResetFilters}
+        income={totalIncome}
+        expenses={totalExpenses}
+        net={netBalance}
+        ratio={incomeExpenseRatio}
+        incomeDelta={heroDelta?.income}
+        expensesDelta={heroDelta?.expenses}
+        savingsRate={heroSavingsRate}
+        expenseCategories={heroExpenseCategories}
+        incomeCategories={heroIncomeCategories}
+        categories={categories}
+        transfers={totalTransfers}
+        transactions={mobileSortedExpenses}
+        totalCount={filteredExpenses.length}
+        showCount={mobileShowCount}
+        onLoadMore={() => setMobileShowCount(prev => prev + 20)}
+        mobileSortKey={mobileSortKey}
+        onSortChange={setMobileSortKey}
+        expandedRowId={expandedRowId}
+        onToggleExpand={handleToggleExpand}
+        onEdit={handleEditExpense}
+        onDelete={handleDeleteExpense}
+        pendingDeleteId={pendingDeleteId}
+        isDemo={isDemo}
+        hasActiveFilters={hasActiveFilters}
+        onAddExpense={handleAddExpense}
+        categoryMetaMap={categoryMetaMap}
       />
 
-      {/* ── Desktop/tablet filter bar — hidden on mobile ──────────────────── */}
+      {/* ── DESKTOP: filter bar ─────────────────────────────────────────────── */}
       <div className="hidden desktop:flex flex-col gap-2">
         {/* Row 1: Search + Period */}
         <div className="flex flex-wrap items-center gap-2">
@@ -935,136 +775,24 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
       </div>
       {/* end desktop filter bar */}
 
-      {/* Desktop: sticky KPI summary on left, transaction list on right */}
-      <div className="desktop:grid desktop:grid-cols-[360px_1fr] desktop:gap-6 desktop:items-start space-y-6 desktop:space-y-0">
+      {/* ── DESKTOP: sticky KPI left + transaction list right ────────────────── */}
+      <div className="hidden desktop:grid desktop:grid-cols-[360px_1fr] desktop:gap-6 desktop:items-start">
       <div className="desktop:sticky desktop:top-4">
       {/* ── Hero Cashflow Card ─────────────────────────────────────────────── */}
-      {/* Mirrors the cashflow card in the Overview/Panoramica page, but driven  */}
-      {/* by filteredExpenses (honours the active time + hierarchy filters).      */}
-      <Card className="py-0">
-        <CardContent className="p-5">
-          {/* Header label: "MAGGIO 2026" or "2026" depending on filter state */}
-          <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-3">
-            Cashflow · {heroLabel}
-          </p>
-
-          {/* 4 KPI chips */}
-          <div className="grid grid-cols-2 gap-3">
-            {/* ENTRATE */}
-            <div className="bg-muted/40 rounded-xl p-3.5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground mb-1.5">
-                Entrate
-              </p>
-              <p className="text-[22px] desktop:text-[26px] font-bold font-mono tabular-nums text-emerald-500 dark:text-emerald-400 leading-none">
-                {cachedFormatCurrencyEUR(totalIncome, true)}
-              </p>
-              {heroDelta !== null && (() => {
-                const pos = heroDelta.income >= 0;
-                return (
-                  <p className={cn('text-[12px] font-mono mt-1.5', pos ? 'text-emerald-500 dark:text-emerald-400' : 'text-destructive')}>
-                    {pos ? '+' : ''}{heroDelta.income.toFixed(1)}% vs mese scorso
-                  </p>
-                );
-              })()}
-            </div>
-
-            {/* SPESE */}
-            <div className="bg-muted/40 rounded-xl p-3.5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground mb-1.5">
-                Spese
-              </p>
-              <p className="text-[22px] desktop:text-[26px] font-bold font-mono tabular-nums text-destructive leading-none">
-                {cachedFormatCurrencyEUR(totalExpenses, true)}
-              </p>
-              {heroDelta !== null && (() => {
-                // For expenses: +% means spent more → destructive (inverted logic vs income).
-                const pos = heroDelta.expenses >= 0;
-                return (
-                  <p className={cn('text-[12px] font-mono mt-1.5', pos ? 'text-destructive' : 'text-emerald-500 dark:text-emerald-400')}>
-                    {pos ? '+' : ''}{heroDelta.expenses.toFixed(1)}% vs mese scorso
-                  </p>
-                );
-              })()}
-            </div>
-
-            {/* RISPARMIO */}
-            <div className="bg-muted/40 rounded-xl p-3.5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground mb-1.5">
-                Risparmio
-              </p>
-              <p className={cn(
-                'text-[22px] desktop:text-[26px] font-bold font-mono tabular-nums leading-none',
-                netBalance >= 0 ? 'text-foreground' : 'text-destructive',
-              )}>
-                {cachedFormatCurrencyEUR(netBalance, true)}
-              </p>
-              {totalIncome > 0 && (
-                <p className="text-[12px] text-muted-foreground mt-1.5">
-                  {heroSavingsRate}% del reddito
-                </p>
-              )}
-            </div>
-
-            {/* RAPPORTO */}
-            <div className="bg-muted/40 rounded-xl p-3.5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground mb-1.5">
-                Rapporto
-              </p>
-              <p className="text-[22px] desktop:text-[26px] font-bold font-mono tabular-nums text-foreground leading-none">
-                {incomeExpenseRatio !== null ? `${incomeExpenseRatio.toFixed(2)}×` : '—'}
-              </p>
-              {incomeExpenseRatio !== null && (
-                <p className="text-[12px] text-muted-foreground mt-1.5">
-                  {coverageHealthLabel(incomeExpenseRatio)}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Trasferimenti Interni — shown only when transfers exist */}
-          {totalTransfers > 0 && (
-            <div className="mt-3 flex items-center justify-between bg-muted/30 rounded-xl px-3.5 py-2.5">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <ArrowRightLeft className="h-3.5 w-3.5" aria-hidden="true" />
-                <span className="text-[11px] font-semibold uppercase tracking-[0.06em]">
-                  Trasferimenti Interni
-                </span>
-              </div>
-              <span className="text-[15px] font-mono tabular-nums text-muted-foreground">
-                {cachedFormatCurrencyEUR(totalTransfers, true)}
-              </span>
-            </div>
-          )}
-
-          {/* Category breakdowns — only shown when there is data */}
-          {(heroExpenseCategories.length > 0 || heroIncomeCategories.length > 0) && (
-            <>
-              <div className="mt-4 border-t border-border" />
-              <div className="grid gap-y-4 mt-4">
-                {/* Spese per categoria */}
-                {heroExpenseCategories.length > 0 && (
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground mb-3">
-                      Spese per Categoria
-                    </p>
-                    <CategoryBreakdownList items={heroExpenseCategories} categories={categories} />
-                  </div>
-                )}
-
-                {/* Entrate per categoria */}
-                {heroIncomeCategories.length > 0 && (
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground mb-3">
-                      Entrate per Categoria
-                    </p>
-                    <CategoryBreakdownList items={heroIncomeCategories} categories={categories} />
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+      <CashflowHeroCard
+        monthLabel={heroLabel}
+        income={totalIncome}
+        expenses={totalExpenses}
+        net={netBalance}
+        ratio={incomeExpenseRatio}
+        incomeDelta={heroDelta?.income}
+        expensesDelta={heroDelta?.expenses}
+        savingsRate={heroSavingsRate}
+        expenseCategories={heroExpenseCategories}
+        incomeCategories={heroIncomeCategories}
+        categories={categories}
+        transfers={totalTransfers}
+      />
       </div>{/* end desktop sticky left panel */}
 
       {/* RIGHT: transaction list */}
@@ -1072,14 +800,13 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
         <CardHeader className="px-5 pt-5 pb-3">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
-              <CardTitle className="text-base">Voci</CardTitle>
+              <CardTitle className="text-base">Elenco delle spese</CardTitle>
               <Badge variant="secondary" className="tabular-nums text-xs">
                 {filteredExpenses.length}
               </Badge>
               <span className="text-sm text-muted-foreground">{periodLabel(period)}</span>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              {/* Export CSV — always visible on all viewports */}
               <Button
                 variant="outline"
                 size="sm"
@@ -1089,107 +816,20 @@ export function ExpenseTrackingTab({ allExpenses, categories, loading, onRefresh
                 className="gap-1.5 h-8 px-2.5 text-xs text-muted-foreground hover:text-foreground"
               >
                 <Download className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Esporta CSV</span>
-              </Button>
-              {/* Mobile: inline add button — desktop uses the header button */}
-              <Button
-                size="sm"
-                onClick={handleAddExpense}
-                disabled={isDemo}
-                aria-label={isDemo ? 'Aggiungi — non disponibile in modalit\u00e0 demo' : 'Aggiungi voce'}
-                title={isDemo ? 'Non disponibile in modalit\u00e0 demo' : undefined}
-                className="desktop:hidden flex-shrink-0 h-9"
-              >
-                <Plus className="h-4 w-4 mr-1.5" />
-                Aggiungi
+                Esporta CSV
               </Button>
             </div>
           </div>
-          {/* Mobile-only sort row */}
-          <div className="flex items-center justify-between gap-2 desktop:hidden mt-2">
-            <span className="text-xs text-muted-foreground shrink-0">Ordina</span>
-            <Select
-              value={mobileSortKey}
-              onValueChange={v => setMobileSortKey(v as typeof mobileSortKey)}
-            >
-              <SelectTrigger
-                className="h-8 w-auto min-w-[160px] text-xs text-muted-foreground"
-                aria-label="Ordina voci per"
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="date-desc">Più recente</SelectItem>
-                <SelectItem value="date-asc">Meno recente</SelectItem>
-                <SelectItem value="amount-desc">Importo maggiore</SelectItem>
-                <SelectItem value="amount-asc">Importo minore</SelectItem>
-                <SelectItem value="category-asc">Categoria A→Z</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
         </CardHeader>
         <CardContent className="px-5 pb-5">
-          {/* Desktop: Table */}
-          <div className="hidden desktop:block">
-            <ExpenseTable
-              expenses={filteredExpenses}
-              onEdit={handleEditExpense}
-              onRefresh={onRefresh}
-              isDemo={isDemo}
-              hasActiveFilters={hasActiveFilters}
-              categories={categories}
-            />
-          </div>
-
-          {/* Mobile: flat divide-y list with tap-to-expand actions */}
-          <div className="desktop:hidden">
-            {filteredExpenses.length === 0 ? (
-              <div className="rounded-md border border-dashed p-8 text-center">
-                <p className="text-muted-foreground">Nessuna voce trovata</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  {hasActiveFilters
-                    ? 'Nessun risultato per i filtri applicati. Prova ad azzerare i filtri.'
-                    : 'Usa il pulsante + per aggiungere la prima voce'}
-                </p>
-              </div>
-            ) : (
-              <>
-                <div className="divide-y divide-border">
-                  {mobileSortedExpenses.slice(0, mobileShowCount).map(expense => {
-                    const catMeta = categoryMetaMap.get(expense.categoryId);
-                    return (
-                      <MobileExpenseRow
-                        key={expense.id}
-                        expense={expense}
-                        isExpanded={expandedRowId === expense.id}
-                        onToggleExpand={handleToggleExpand}
-                        onEdit={handleEditExpense}
-                        onDelete={handleDeleteExpense}
-                        isPendingDelete={pendingDeleteId === expense.id}
-                        isDemo={isDemo}
-                        categoryIcon={catMeta?.icon}
-                        categoryColor={catMeta?.color}
-                      />
-                    );
-                  })}
-                </div>
-                {filteredExpenses.length > mobileShowCount && (
-                  <div className="pt-4 text-center">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setMobileShowCount(prev => prev + 20)}
-                    >
-                      Carica altri {Math.min(20, filteredExpenses.length - mobileShowCount)}
-                    </Button>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {mobileShowCount} di {filteredExpenses.length} voci
-                    </p>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+          <ExpenseTable
+            expenses={filteredExpenses}
+            onEdit={handleEditExpense}
+            onRefresh={onRefresh}
+            isDemo={isDemo}
+            hasActiveFilters={hasActiveFilters}
+            categories={categories}
+          />
         </CardContent>
       </Card>
       </div>{/* end desktop two-column grid */}

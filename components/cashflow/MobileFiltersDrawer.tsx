@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { SlidersHorizontal, X, Search } from 'lucide-react';
+import { SlidersHorizontal, X, Search, ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -61,6 +61,11 @@ export interface MobileFiltersDrawerProps {
   activeFilterCount: number;
 
   onReset: () => void;
+
+  // Sort (rendered in the filter bar row next to Filtri)
+  mobileSortKey?: string;
+  onSortChange?: (key: string) => void;
+  sortOptions?: { value: string; label: string; shortLabel: string }[];
 }
 
 /**
@@ -96,21 +101,24 @@ export function MobileFiltersDrawer({
   onAccountChange,
   activeFilterCount,
   onReset,
+  mobileSortKey,
+  onSortChange,
+  sortOptions,
 }: MobileFiltersDrawerProps) {
   const [open, setOpen] = useState(false);
 
   return (
     <div className="flex items-center gap-2 desktop:hidden">
-      {/* Period picker — always visible inline */}
+      {/* Spacer pushes all controls to the right */}
+      <div className="flex-1" />
+
+      {/* Period picker */}
       <PeriodPicker
         value={period}
         onChange={onPeriodChange}
         availableYears={availableYears}
         className="shrink-0"
       />
-
-      {/* Spacer pushes filter button to the right */}
-      <div className="flex-1" />
 
       {/* Filter button — badge shows count of active drawer filters */}
       <div className="relative shrink-0">
@@ -138,6 +146,26 @@ export function MobileFiltersDrawer({
             </span>
           )}
         </div>
+
+      {/* Compact sort select — rendered only when sortOptions provided */}
+      {sortOptions && mobileSortKey !== undefined && onSortChange && (
+        <Select value={mobileSortKey} onValueChange={onSortChange}>
+          <SelectTrigger
+            className="h-9 w-auto gap-1 pl-2.5 pr-2 text-xs text-muted-foreground border-border"
+            aria-label="Ordina voci per"
+          >
+            <ArrowUpDown className="h-3.5 w-3.5 shrink-0" />
+            <span className="sr-only">Ordina</span>
+          </SelectTrigger>
+          <SelectContent align="end">
+            {sortOptions.map(opt => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
 
       {/* Bottom drawer with advanced filters */}
       <Drawer open={open} onOpenChange={setOpen}>
