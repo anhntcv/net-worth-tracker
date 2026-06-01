@@ -15,7 +15,7 @@ import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carouse
 import { cn } from '@/lib/utils';
 import { cachedFormatCurrencyEUR } from '@/lib/utils/formatters';
 import { type CategoryBreakdownItem } from '../CategoryBreakdownList';
-import { coverageHealthLabel } from './CashflowHeroCard';
+import { coverageHealthLabel } from './CashflowWidget';
 import type { ExpenseCategory } from '@/types/expenses';
 import { CashflowCategoryDrawer } from './CashflowCategoryDrawer';
 
@@ -41,7 +41,8 @@ function getDeltaArrow(delta: number): string {
 
 function getRatioColorClass(ratio: number | null): string {
   if (ratio === null) return 'text-muted-foreground';
-  if (ratio >= 1) return 'text-emerald-600 dark:text-emerald-400';
+  if (ratio >= 1.3) return 'text-emerald-600 dark:text-emerald-400';
+  if (ratio >= 1.0) return 'text-amber-500 dark:text-amber-400';
   return 'text-destructive';
 }
 
@@ -107,7 +108,7 @@ function KpiChip({
         onClick={onClick}
         aria-label={ariaLabel}
         className={cn(
-          'bg-card desktop:p-6 ring-border/20 h-full w-full rounded-2xl p-4 text-left ring-1 sm:p-5',
+          'bg-card tablet:p-6 ring-border/20 h-full w-full rounded-2xl p-4 text-left ring-1 sm:p-5',
           'transition-transform duration-100 active:scale-[0.97]',
           CHIP_SHADOW,
         )}
@@ -124,7 +125,7 @@ function KpiChip({
   return (
     <div
       className={cn(
-        'bg-card desktop:p-6 ring-border/20 h-full rounded-2xl p-4 ring-1 sm:p-5',
+        'bg-card tablet:p-6 ring-border/20 h-full rounded-2xl p-4 ring-1 sm:p-5',
         CHIP_SHADOW,
       )}
     >
@@ -140,9 +141,9 @@ function KpiChip({
 // ─── KpiCarouselItem ─────────────────────────────────────────────────────────
 
 /** Carousel slot with fixed chip width. Wraps every KpiChip in the carousel. */
-function KpiCarouselItem({ children }: Readonly<{ children: React.ReactNode }>) {
+function KpiCarouselItem({ children, className }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return (
-    <CarouselItem className="desktop:basis-[240px] basis-[160px] pl-3 sm:basis-[200px]">
+    <CarouselItem className={cn('tablet:basis-[240px] basis-[160px] pl-3 sm:basis-[200px]', className)}>
       {children}
     </CarouselItem>
   );
@@ -192,7 +193,7 @@ interface KpiCardData {
 }
 
 const VALUE_CLASS =
-  'desktop:text-3xl mt-1.5 font-mono text-[21px] leading-none font-bold tabular-nums sm:text-2xl';
+  'tablet:text-3xl mt-1.5 font-mono text-[21px] leading-none font-bold tabular-nums sm:text-2xl';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -220,14 +221,14 @@ export function CashflowKpiCarousel({
       id: 'entrate',
       label: 'Entrate',
       displayValue: cachedFormatCurrencyEUR(income),
-      valueClassName: getEuroColor(income),
+      valueClassName: income === 0 ? 'text-muted-foreground' : 'text-emerald-600 dark:text-emerald-400',
       subtext: <DeltaRow delta={incomeDelta} />,
     },
     {
       id: 'spese',
       label: 'Spese',
       displayValue: cachedFormatCurrencyEUR(Math.abs(expenses)),
-      valueClassName: getEuroColor(expenses),
+      valueClassName: expenses === 0 ? 'text-muted-foreground' : 'text-destructive',
       subtext: <DeltaRow delta={expensesDelta} invert />,
     },
     {
@@ -244,7 +245,7 @@ export function CashflowKpiCarousel({
     {
       id: 'rapporto',
       label: 'Rapporto',
-      displayValue: ratio === null ? '0×' : `${ratio.toFixed(2)}×`,
+      displayValue: ratio === null ? '—' : `${ratio.toFixed(2)}×`,
       valueClassName: getRatioColorClass(ratio),
       subtext: (
         <p className="text-muted-foreground mt-1.5 text-[11px] leading-none">
@@ -275,7 +276,7 @@ export function CashflowKpiCarousel({
         >
           <CarouselContent viewportClassName="px-4 py-3 pb-6" className="items-stretch">
             {cards.map((card) => (
-              <KpiCarouselItem key={card.id}>
+              <KpiCarouselItem key={card.id} className={card.id === 'categorie' ? 'tablet:hidden' : undefined}>
                 <KpiChip
                   label={card.label}
                   onClick={card.onClick}

@@ -174,7 +174,7 @@ export async function createCategory(
   categoryData: ExpenseCategoryFormData
 ): Promise<string> {
   try {
-    const now = Timestamp.now();
+    const now = new Date();
     const categoriesRef = collection(db, CATEGORIES_COLLECTION);
 
     const cleanedData = removeUndefinedFields({
@@ -224,7 +224,7 @@ export async function updateCategory(
 
     const cleanedUpdates = removeUndefinedFields({
       ...updates,
-      updatedAt: Timestamp.now(),
+      updatedAt: new Date(),
     });
 
     await updateDoc(categoryRef, cleanedUpdates);
@@ -340,7 +340,7 @@ export async function updateSubCategory(
     const categoryRef = doc(db, CATEGORIES_COLLECTION, categoryId);
     const cleanedUpdates = removeUndefinedFields({
       subCategories: updatedSubCategories,
-      updatedAt: Timestamp.now(),
+      updatedAt: new Date(),
     });
     await updateDoc(categoryRef, cleanedUpdates);
   } catch (error) {

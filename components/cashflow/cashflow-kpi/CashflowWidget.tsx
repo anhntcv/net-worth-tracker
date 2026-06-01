@@ -1,10 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, ArrowRightLeft } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { cachedFormatCurrencyEUR } from '@/lib/utils/formatters';
 import {
   CategoryBreakdownList,
   type CategoryBreakdownItem,
@@ -20,7 +19,7 @@ export function coverageHealthLabel(ratio: number): string {
   return 'In deficit';
 }
 
-export interface CashflowHeroCardProps {
+export interface CashflowWidgetProps {
   /** Period label shown in the card header (e.g. "MAGGIO 2026"). */
   monthLabel: string;
   income: number;
@@ -42,7 +41,7 @@ export interface CashflowHeroCardProps {
   className?: string;
 }
 
-export function CashflowHeroCard({
+export function CashflowWidget({
   monthLabel,
   income,
   expenses,
@@ -54,9 +53,8 @@ export function CashflowHeroCard({
   expenseCategories,
   incomeCategories,
   categories,
-  transfers,
   className,
-}: CashflowHeroCardProps) {
+}: Readonly<CashflowWidgetProps>) {
   const [catsExpanded, setCatsExpanded] = useState(false);
 
   return (
@@ -85,7 +83,7 @@ export function CashflowHeroCard({
 
           {/* Category breakdowns */}
           {
-            <div className="desktop:block hidden">
+            <div className="tablet:block hidden">
               <div className="border-border mt-4 border-t" />
 
               {/* Toggle button */}

@@ -214,7 +214,7 @@ export async function createExpense(
   subCategoryName?: string
 ): Promise<string | string[]> {
   try {
-    const now = Timestamp.now();
+    const now = new Date();
 
     // Priority 1: Check installment first (BNPL payments with varying amounts)
     // Installments have priority over recurring since they're more specific
@@ -281,7 +281,7 @@ async function createRecurringExpenses(
     const batch = writeBatch(db);
     const expensesRef = collection(db, EXPENSES_COLLECTION);
     const createdIds: string[] = [];
-    const now = Timestamp.now();
+    const now = new Date();
 
     // Create parent expense ID for reference
     const parentId = `recurring-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -372,7 +372,7 @@ async function createInstallmentExpenses(
     const batch = writeBatch(db);
     const expensesRef = collection(db, EXPENSES_COLLECTION);
     const createdIds: string[] = [];
-    const now = Timestamp.now();
+    const now = new Date();
 
     // Generate unique parent ID for linking all installments together
     // This allows bulk operations like "delete all installments in this series"
@@ -524,7 +524,7 @@ export async function updateExpense(
       date: updates.date ? Timestamp.fromDate(updates.date) : undefined,
       linkedCashAssetId: updates.linkedCashAssetId,
       transferCashAssetId: updates.transferCashAssetId,
-      updatedAt: Timestamp.now(),
+      updatedAt: new Date(),
     });
 
     await updateDoc(expenseRef, cleanedUpdates);
@@ -826,7 +826,7 @@ export async function updateExpensesCategoryName(
     querySnapshot.docs.forEach(docSnapshot => {
       batch.update(docSnapshot.ref, {
         categoryName: newCategoryName,
-        updatedAt: Timestamp.now(),
+        updatedAt: new Date(),
       });
     });
 
@@ -866,7 +866,7 @@ export async function updateExpensesSubCategoryName(
     querySnapshot.docs.forEach(docSnapshot => {
       batch.update(docSnapshot.ref, {
         subCategoryName: newSubCategoryName,
-        updatedAt: Timestamp.now(),
+        updatedAt: new Date(),
       });
     });
 
@@ -909,7 +909,7 @@ export async function reassignExpensesCategory(
       const updates: any = {
         categoryId: newCategoryId,
         categoryName: newCategoryName,
-        updatedAt: Timestamp.now(),
+        updatedAt: new Date(),
       };
 
       // If new subcategory is provided, update it; otherwise clear it
@@ -963,7 +963,7 @@ export async function clearExpensesCategoryAssignment(
         categoryName: 'Uncategorized',
         subCategoryId: null,
         subCategoryName: null,
-        updatedAt: Timestamp.now(),
+        updatedAt: new Date(),
       };
 
       batch.update(docSnapshot.ref, removeUndefinedFields(updates));
@@ -1008,7 +1008,7 @@ export async function reassignExpensesSubCategory(
 
     querySnapshot.docs.forEach(docSnapshot => {
       const updates: any = {
-        updatedAt: Timestamp.now(),
+        updatedAt: new Date(),
       };
 
       // If new subcategory is provided, update it; otherwise clear it
@@ -1085,7 +1085,7 @@ export async function moveExpensesToCategory(
         categoryId: newCategoryId,
         categoryName: newCategoryName,
         type: newType,
-        updatedAt: Timestamp.now(),
+        updatedAt: new Date(),
       };
 
       // Flip amount sign when crossing income ↔ expense boundary
@@ -1155,7 +1155,7 @@ export async function moveExpensesFromSubCategory(
         categoryId: newCategoryId,
         categoryName: newCategoryName,
         type: newType,
-        updatedAt: Timestamp.now(),
+        updatedAt: new Date(),
       };
 
       // Flip amount sign when crossing income ↔ expense boundary
@@ -1223,7 +1223,7 @@ export async function updateExpensesType(
     querySnapshot.docs.forEach(docSnapshot => {
       const updates: Record<string, unknown> = {
         type: newType,
-        updatedAt: Timestamp.now(),
+        updatedAt: new Date(),
       };
 
       if (flipSign) {

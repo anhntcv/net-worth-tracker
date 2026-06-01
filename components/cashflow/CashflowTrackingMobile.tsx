@@ -23,7 +23,7 @@ import type { Expense, ExpenseCategory, ExpenseType } from '@/types/expenses';
 import type { MultiSelectGroup } from '@/components/ui/multi-select';
 import { MobileFiltersDrawer } from '@/components/cashflow/MobileFiltersDrawer';
 import { type CategoryBreakdownItem } from '@/components/cashflow/CategoryBreakdownList';
-import { MobileExpenseRow, TYPE_DOT_CLASS } from '@/components/cashflow/MobileExpenseRow';
+import { CompactExpenseRow, TYPE_DOT_CLASS } from '@/components/cashflow/CompactExpenseRow';
 import { getLazyIcon } from '@/components/expenses/IconPickerPopover';
 
 // ─── Italian type labels ───────────────────────────────────────────────────────
@@ -488,7 +488,7 @@ export function CashflowTrackingMobile({
                     const catMeta = categoryMetaMap.get(expense.categoryId);
                     return (
                       <div key={expense.id} className="px-2">
-                        <MobileExpenseRow
+                        <CompactExpenseRow
                           expense={expense}
                           onSelect={setSelectedExpense}
                           categoryIcon={catMeta?.icon}

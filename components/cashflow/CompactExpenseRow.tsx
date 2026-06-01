@@ -17,7 +17,7 @@ export const TYPE_DOT_CLASS: Record<ExpenseType, string> = {
   transfer: 'bg-[var(--chart-5)]',
 };
 
-export interface MobileExpenseRowProps {
+export interface CompactExpenseRowProps {
   expense: Expense;
   onSelect: (expense: Expense) => void;
   categoryIcon?: string;
@@ -29,12 +29,12 @@ export interface MobileExpenseRowProps {
  *
  * Tapping the row opens a detail bottom-sheet managed by the parent.
  */
-export function MobileExpenseRow({
+export function CompactExpenseRow({
   expense,
   onSelect,
   categoryIcon,
   categoryColor,
-}: MobileExpenseRowProps) {
+}: Readonly<CompactExpenseRowProps>) {
   const isIncome = expense.type === 'income';
   const isTransfer = expense.type === 'transfer';
 

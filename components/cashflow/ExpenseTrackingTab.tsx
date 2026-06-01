@@ -60,7 +60,7 @@ import { ExpenseDialog } from '@/components/expenses/ExpenseDialog';
 import { ExpenseTable } from '@/components/expenses/ExpenseTable';
 
 import { CategoryBreakdownList } from '@/components/cashflow/CategoryBreakdownList';
-import { CashflowHeroCard } from '@/components/cashflow/cashflow-kpi/CashflowHeroCard';
+import { CashflowWidget } from '@/components/cashflow/cashflow-kpi/CashflowWidget';
 import { Badge } from '@/components/ui/badge';
 
 import { format } from 'date-fns';
@@ -850,7 +850,7 @@ export function ExpenseTrackingTab({
       <div className="desktop:grid desktop:grid-cols-[360px_1fr] desktop:gap-6 desktop:items-start hidden">
         <div className="desktop:sticky desktop:top-4">
           {/* ── Hero Cashflow Card ─────────────────────────────────────────────── */}
-          <CashflowHeroCard
+          <CashflowWidget
             monthLabel={heroLabel}
             income={totalIncome}
             expenses={totalExpenses}

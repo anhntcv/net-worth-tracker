@@ -22,7 +22,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Camera, Receipt, TrendingDown, TrendingUp } from 'lucide-react';
-import { CashflowHeroCard } from '@/components/cashflow/cashflow-kpi/CashflowHeroCard';
+import { CashflowWidget } from '@/components/cashflow/cashflow-kpi/CashflowWidget';
 import { toast } from 'sonner';
 import { useCreateSnapshot } from '@/lib/hooks/useSnapshots';
 import { useDashboardOverview } from '@/lib/hooks/useDashboardOverview';
@@ -700,7 +700,7 @@ export default function DashboardPage() {
               initial="hidden"
               animate="visible"
             >
-              <CashflowHeroCard
+              <CashflowWidget
                 monthLabel={monthLabel}
                 income={income}
                 expenses={expenses}

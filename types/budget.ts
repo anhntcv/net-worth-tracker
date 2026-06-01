@@ -1,4 +1,3 @@
-import { Timestamp } from 'firebase/firestore';
 import { ExpenseType } from './expenses';
 
 // Budget feature types
@@ -33,7 +32,7 @@ export interface BudgetItem {
 export interface BudgetConfig {
   userId: string;
   items: BudgetItem[];
-  updatedAt: Timestamp;
+  updatedAt: Date;
 }
 
 export type BudgetViewMode = 'annual' | 'monthly';

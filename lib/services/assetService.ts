@@ -177,7 +177,7 @@ export async function createAsset(
   assetData: AssetFormData
 ): Promise<string> {
   try {
-    const now = Timestamp.now();
+    const now = new Date();
     const assetsRef = collection(db, ASSETS_COLLECTION);
 
     // Check if ISIN exists and we have historical dividends with that ISIN
@@ -269,7 +269,7 @@ export async function updateAsset(
     // cost-basis fields that the caller cleared (undefined → deleteField sentinel).
     const cleanedUpdates: Record<string, unknown> = removeUndefinedFields({
       ...updates,
-      updatedAt: Timestamp.now(),
+      updatedAt: new Date(),
     });
 
     if (updates.averageCost === undefined) cleanedUpdates.averageCost = deleteField();
@@ -305,8 +305,8 @@ export async function updateAssetPrice(
 
     await updateDoc(assetRef, {
       currentPrice: price,
-      lastPriceUpdate: Timestamp.now(),
-      updatedAt: Timestamp.now(),
+      lastPriceUpdate: new Date(),
+      updatedAt: new Date(),
     });
 
     const userId = existingAsset.data()?.userId;
@@ -355,7 +355,7 @@ export async function updateCashAssetBalance(assetId: string, signedDelta: numbe
     const assetRef = doc(db, ASSETS_COLLECTION, assetId);
     await updateDoc(assetRef, {
       quantity: newQuantity,
-      updatedAt: Timestamp.now(),
+      updatedAt: new Date(),
     });
     await invalidateDashboardOverviewSummary(asset.userId, 'cash_asset_balance_updated');
   } catch (error) {

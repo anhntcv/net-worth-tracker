@@ -1035,10 +1035,7 @@ export function ExpenseDialog({ open, onClose, expense, onSuccess }: Readonly<Ex
         subCategoryId: expense.subCategoryId || '',
         amount: Math.abs(expense.amount),
         currency: expense.currency,
-        date:
-          expense.date instanceof Date
-            ? expense.date
-            : expense.date.toDate(),
+        date: expense.date,
         notes: expense.notes || '',
         link: expense.link || '',
         isRecurring: expense.isRecurring || false,

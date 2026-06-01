@@ -53,6 +53,8 @@
 
   /* Custom breakpoint for desktop (avoid iPad Mini landscape = 1440px) */
   --breakpoint-desktop: 1440px;
+  /* Tablet — iPad portrait and above */
+  --breakpoint-tablet: 768px;
 }
 
 :root {

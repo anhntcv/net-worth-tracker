@@ -455,8 +455,8 @@ async function recomputeDashboardOverview(userId: string): Promise<DashboardOver
   const summaryDoc: StoredDashboardOverviewSummary = {
     userId,
     payload: payloadWithoutFreshness,
-    updatedAt: Timestamp.now(),
-    computedAt: Timestamp.now(),
+    updatedAt: new Date(),
+    computedAt: new Date(),
     sourceVersion: DASHBOARD_OVERVIEW_SOURCE_VERSION,
     invalidatedAt: null,
     lastInvalidationReason: null,

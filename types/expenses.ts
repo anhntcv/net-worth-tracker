@@ -1,5 +1,3 @@
-import { Timestamp } from 'firebase/firestore';
-
 // Expense categories for cashflow tracking.
 // These are mutually exclusive and determine UI filtering/display logic.
 // - fixed: Regular fixed expenses (rent, subscriptions)
@@ -31,8 +29,8 @@ export interface ExpenseCategory {
   color?: string;
   icon?: string;
   subCategories: ExpenseSubCategory[];
-  createdAt: Date | Timestamp;
-  updatedAt: Date | Timestamp;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface ExpenseCategoryFormData {
@@ -57,7 +55,7 @@ export interface Expense {
   subCategoryName?: string; // Denormalized for faster queries
   amount: number; // Sign convention: POSITIVE for income, NEGATIVE for expenses/debts, POSITIVE for transfers (direction encoded by origin/destination asset IDs)
   currency: string;
-  date: Date | Timestamp;
+  date: Date;
   notes?: string;
   link?: string; // Optional link (e.g., Amazon order, receipt, etc.)
   // Recurring payment configuration
@@ -86,8 +84,8 @@ export interface Expense {
   // WARNING: If a cost center is renamed, bulk-update all linked expenses via costCenterService.renameCostCenter.
   costCenterId?: string;
   costCenterName?: string;
-  createdAt: Date | Timestamp;
-  updatedAt: Date | Timestamp;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface ExpenseFormData {
