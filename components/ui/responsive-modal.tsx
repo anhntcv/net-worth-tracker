@@ -71,9 +71,12 @@ export function ResponsiveModal({
 
   if (isMobile) {
     return (
-      // noBodyStyles: prevents vaul from setting overflow:hidden on body,
-      // which on iOS interferes with layout restoration after keyboard dismiss.
-      <Drawer open={open} onOpenChange={(v) => !v && onClose()} noBodyStyles>
+      // noBodyStyles: prevents vaul from setting overflow:hidden on body.
+      // repositionInputs={false}: disables vaul's logic that shifts the drawer
+      // upward when an input receives focus; without this, the drawer moves up
+      // when the keyboard opens and doesn't fully restore when it closes,
+      // leaving the footer buttons stuck away from the bottom edge.
+      <Drawer open={open} onOpenChange={(v) => !v && onClose()} noBodyStyles repositionInputs={false}>
         <DrawerContent>
           <DrawerHeader className="border-b px-4 pb-3 pt-2">
             <DrawerTitle>{title}</DrawerTitle>
