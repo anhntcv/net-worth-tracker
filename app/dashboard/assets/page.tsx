@@ -26,6 +26,7 @@ import { useDashboardOverview } from '@/lib/hooks/useDashboardOverview';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/query/queryKeys';
 import { Card, CardContent } from '@/components/ui/card';
+import { EmptyState } from '@/components/ui/empty-state';
 import {
   Dialog,
   DialogContent,
@@ -84,20 +85,16 @@ function CashAccountsSection({
         Conti Correnti
       </p>
       {assets.length === 0 ? (
-        <button
-          type="button"
-          onClick={onAdd}
-          className={cn(
-            'w-full rounded-xl border border-dashed border-border bg-muted/20 p-5 text-left',
-            'hover:bg-muted/40 active:bg-muted/50 transition-colors duration-150',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1'
-          )}
-        >
-          <div className="flex items-center gap-3 text-muted-foreground">
-            <Wallet className="h-4 w-4 shrink-0" />
-            <span className="text-sm">Aggiungi il tuo primo conto corrente</span>
-          </div>
-        </button>
+        <EmptyState
+          icon={Wallet}
+          title="Nessun conto corrente"
+          description="Aggiungi il tuo primo conto corrente per tracciare la liquidità."
+          action={
+            <Button size="sm" onClick={onAdd}>
+              Aggiungi conto
+            </Button>
+          }
+        />
       ) : (
         <div className="grid grid-cols-2 desktop:grid-cols-4 gap-3">
           {assets.map((asset) => (
