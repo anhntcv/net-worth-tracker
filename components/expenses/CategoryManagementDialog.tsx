@@ -231,6 +231,7 @@ function CategoryFormBody({
             value={selectedIcon}
             onChange={(icon) => setValue('icon', icon)}
             triggerAriaLabel="Scegli icona categoria"
+            expenseType={selectedType}
           />
         </div>
 

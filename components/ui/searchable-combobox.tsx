@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, type ReactNode, type ChangeEvent } from 'react';
 import { Check, X, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -10,6 +10,8 @@ export interface ComboboxOption {
   value: string;
   label: string;
   color?: string;
+  /** Optional rendered icon shown in the dropdown and as left adornment when selected. */
+  icon?: ReactNode;
 }
 
 interface SearchableComboboxProps {
@@ -130,7 +132,7 @@ export function SearchableCombobox({
     }, 200);
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
     if (!isDropdownOpen) {
       setIsDropdownOpen(true);
@@ -144,11 +146,20 @@ export function SearchableCombobox({
     setSearchQuery('');
   };
 
+  // Icon of the currently selected option (only shown when not focused).
+  const selectedIcon: ReactNode | null = !isFocused ? (selectedOption?.icon ?? null) : null;
+
   // === Rendering ===
 
   return (
     <div className="space-y-2">
       <div className="relative" ref={dropdownRef}>
+        {/* Left icon adornment — shown when an option with an icon is selected */}
+        {selectedIcon && (
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+            {selectedIcon}
+          </span>
+        )}
         <Input
           id={id}
           placeholder={isFocused ? searchPlaceholder : placeholder}
@@ -157,6 +168,7 @@ export function SearchableCombobox({
           onFocus={handleFocus}
           onBlur={handleBlur}
           disabled={disabled}
+          className={selectedIcon ? 'pl-9' : undefined}
         />
         {isFocused && isDropdownOpen && !disabled && (
           // Use bg-popover + border-border to match the shadcn Select dropdown appearance
@@ -178,12 +190,14 @@ export function SearchableCombobox({
                   )}
                   onClick={() => handleSelect(option.value)}
                 >
-                  {option.color && (
+                  {option.icon ? (
+                    <span className="flex-shrink-0 text-muted-foreground">{option.icon}</span>
+                  ) : option.color ? (
                     <div
                       className="w-3 h-3 rounded-full flex-shrink-0 border border-gray-300"
                       style={{ backgroundColor: option.color }}
                     />
-                  )}
+                  ) : null}
                   <span className="flex-1">{option.label}</span>
                   {value === option.value && (
                     <Check className="h-4 w-4 text-primary flex-shrink-0" />
@@ -210,12 +224,14 @@ export function SearchableCombobox({
       </div>
       {showBadge && selectedOption && value !== '' && (
         <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-md border border-border">
-          {selectedOption.color && (
+          {selectedOption.icon ? (
+            <span className="text-muted-foreground flex-shrink-0">{selectedOption.icon}</span>
+          ) : selectedOption.color ? (
             <div
               className="w-3 h-3 rounded-full border border-gray-300"
               style={{ backgroundColor: selectedOption.color }}
             />
-          )}
+          ) : null}
           <span className="text-sm font-medium">{selectedOption.label}</span>
           {onClear && (
             <button

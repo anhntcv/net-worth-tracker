@@ -5,7 +5,7 @@ import { Tag, X } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { CATEGORY_ICONS, CATEGORY_ICON_NAMES } from '@/lib/constants/categoryIcons';
+import { CATEGORY_ICONS, CATEGORY_ICON_NAMES, CATEGORY_ICONS_BY_TYPE } from '@/lib/constants/categoryIcons';
 import { cn } from '@/lib/utils';
 import type { LucideProps } from 'lucide-react';
 
@@ -36,6 +36,11 @@ interface IconPickerPopoverProps {
   triggerAriaLabel?: string;
   /** Additional class names for the trigger button (e.g. compact sizing) */
   triggerClassName?: string;
+  /**
+   * When provided, type-relevant icons are shown first in the picker.
+   * All other icons remain available via search or scrolling.
+   */
+  expenseType?: string;
 }
 
 /**
@@ -53,18 +58,30 @@ export function IconPickerPopover({
   onChange,
   triggerAriaLabel,
   triggerClassName,
+  expenseType,
 }: Readonly<IconPickerPopoverProps>) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
 
+  // Base order: type-relevant icons first, then the rest (deduped).
+  const orderedIconNames = useMemo(() => {
+    if (!expenseType) return CATEGORY_ICON_NAMES;
+    const typeIcons = (CATEGORY_ICONS_BY_TYPE[expenseType] ?? []).filter(
+      (n) => CATEGORY_ICONS[n]
+    );
+    const typeSet = new Set(typeIcons);
+    const rest = CATEGORY_ICON_NAMES.filter((n) => !typeSet.has(n));
+    return [...typeIcons, ...rest];
+  }, [expenseType]);
+
   const filteredIcons = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return CATEGORY_ICON_NAMES;
-    return CATEGORY_ICON_NAMES.filter((name) => {
+    if (!q) return orderedIconNames;
+    return orderedIconNames.filter((name) => {
       const label = CATEGORY_ICONS[name] ?? '';
       return label.toLowerCase().includes(q) || name.toLowerCase().includes(q);
     });
-  }, [search]);
+  }, [search, orderedIconNames]);
 
   // Resolve the currently selected icon component for the trigger preview.
   const SelectedIcon = value ? getLazyIcon(value) : null;

@@ -16,7 +16,7 @@
  * All form logic, Zod schema, and submission paths are preserved unchanged.
  */
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -57,7 +57,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { SearchableCombobox } from '@/components/ui/searchable-combobox';
+import { SearchableCombobox, type ComboboxOption } from '@/components/ui/searchable-combobox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Collapsible,
@@ -68,7 +68,8 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { ChevronDown, ArrowLeftRight } from 'lucide-react';
+import { ChevronDown, ArrowLeftRight, Tag } from 'lucide-react';
+import { getLazyIcon } from '@/components/expenses/IconPickerPopover';
 import { formatCurrency } from '@/lib/utils/formatters';
 import { useMediaQuery } from '@/lib/hooks/useMediaQuery';
 import { cn } from '@/lib/utils';
@@ -218,8 +219,8 @@ interface FormBodyProps {
   costCentersEnabled: boolean;
   selectedCostCenterId: string;
   setSelectedCostCenterId: (id: string) => void;
-  availableCategories: ExpenseCategory[];
-  availableSubCategories: { id: string; name: string }[];
+  availableCategories: ComboboxOption[];
+  availableSubCategories: ComboboxOption[];
   onCreateCategory: (name: string) => void;
   onCreateSubCategory: (name: string) => void;
   advancedOpen: boolean;
@@ -393,11 +394,7 @@ function ExpenseFormBody({
             <>
               <SearchableCombobox
                 id="categoryId"
-                options={availableCategories.map((cat) => ({
-                  value: cat.id,
-                  label: cat.name,
-                  color: cat.color || 'var(--primary)',
-                }))}
+                options={availableCategories}
                 value={selectedCategoryId || ''}
                 onValueChange={(value) => {
                   setValue('categoryId', value);
@@ -423,10 +420,7 @@ function ExpenseFormBody({
           </Label>
           <SearchableCombobox
             id="subCategoryId"
-            options={availableSubCategories.map((sub) => ({
-              value: sub.id,
-              label: sub.name,
-            }))}
+            options={availableSubCategories}
             value={watchedSubCategoryId || ''}
             onValueChange={(value) => setValue('subCategoryId', value || undefined)}
             placeholder={selectedCategoryId ? 'Seleziona' : 'Prima seleziona categoria'}
@@ -1094,7 +1088,20 @@ export function ExpenseDialog({ open, onClose, expense, onSuccess }: Readonly<Ex
     () =>
       categories
         .filter((cat) => cat.type === selectedType)
-        .sort((a, b) => a.name.localeCompare(b.name, 'it')),
+        .sort((a, b) => a.name.localeCompare(b.name, 'it'))
+        .map((cat) => {
+          const LazyIcon = cat.icon ? getLazyIcon(cat.icon) : null;
+          return {
+            value: cat.id,
+            label: cat.name,
+            color: cat.color || 'var(--primary)',
+            icon: LazyIcon ? (
+              <Suspense fallback={<Tag className="h-3.5 w-3.5" aria-hidden="true" />}>
+                <LazyIcon className="h-3.5 w-3.5" aria-hidden="true" />
+              </Suspense>
+            ) : undefined,
+          };
+        }),
     [categories, selectedType]
   );
 
@@ -1105,9 +1112,20 @@ export function ExpenseDialog({ open, onClose, expense, onSuccess }: Readonly<Ex
 
   const availableSubCategories = useMemo(
     () =>
-      (selectedCategory?.subCategories || []).sort((a, b) =>
-        a.name.localeCompare(b.name, 'it')
-      ),
+      (selectedCategory?.subCategories || [])
+        .sort((a, b) => a.name.localeCompare(b.name, 'it'))
+        .map((sub) => {
+          const LazyIcon = sub.icon ? getLazyIcon(sub.icon) : null;
+          return {
+            value: sub.id,
+            label: sub.name,
+            icon: LazyIcon ? (
+              <Suspense fallback={<Tag className="h-3.5 w-3.5" aria-hidden="true" />}>
+                <LazyIcon className="h-3.5 w-3.5" aria-hidden="true" />
+              </Suspense>
+            ) : undefined,
+          };
+        }),
     [selectedCategory]
   );
 
