@@ -272,7 +272,7 @@ const OverviewChartsSectionInner = ({
                     {section.data
                       .filter(item => item.percentage >= 5)
                       .map((item, i) => (
-                        <LegendRow key={item.name} item={item} index={i} />
+                        <LegendRow key={`${item.name}-${i}`} item={item} index={i} />
                       ))}
                   </div>
                 </div>
