@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteField } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { invalidateDashboardOverviewSummary } from '@/lib/services/dashboardOverviewInvalidation';
 import { Asset, AssetClass, AssetAllocationTarget, AssetAllocationSettings, AllocationResult, SubCategoryTarget, SpecificAssetAllocation, AllocationData } from '@/types/assets';
@@ -185,11 +185,23 @@ export async function setSettings(
       if (settings.autoCalculateEquityBonds !== undefined) {
         docData.autoCalculateEquityBonds = settings.autoCalculateEquityBonds;
       }
-      if (settings.defaultDebitCashAssetId !== undefined) {
-        docData.defaultDebitCashAssetId = settings.defaultDebitCashAssetId;
+      // Default cash accounts are user-clearable: a present-but-undefined value means
+      // "Nessun default". setDoc here runs WITHOUT merge, so deleting the key from docData
+      // (built from existingData) drops the stored value. The `in` check distinguishes
+      // "clear this field" from "field not part of this update".
+      if ('defaultDebitCashAssetId' in settings) {
+        if (settings.defaultDebitCashAssetId !== undefined) {
+          docData.defaultDebitCashAssetId = settings.defaultDebitCashAssetId;
+        } else {
+          delete docData.defaultDebitCashAssetId;
+        }
       }
-      if (settings.defaultCreditCashAssetId !== undefined) {
-        docData.defaultCreditCashAssetId = settings.defaultCreditCashAssetId;
+      if ('defaultCreditCashAssetId' in settings) {
+        if (settings.defaultCreditCashAssetId !== undefined) {
+          docData.defaultCreditCashAssetId = settings.defaultCreditCashAssetId;
+        } else {
+          delete docData.defaultCreditCashAssetId;
+        }
       }
       if (settings.stampDutyEnabled !== undefined) {
         docData.stampDutyEnabled = settings.stampDutyEnabled;
@@ -294,11 +306,20 @@ export async function setSettings(
       if (settings.autoCalculateEquityBonds !== undefined) {
         docData.autoCalculateEquityBonds = settings.autoCalculateEquityBonds;
       }
-      if (settings.defaultDebitCashAssetId !== undefined) {
-        docData.defaultDebitCashAssetId = settings.defaultDebitCashAssetId;
+      // Default cash accounts are user-clearable. This branch writes with merge: true,
+      // so omitting the key would leave the old value untouched — use deleteField() to
+      // remove it when the user selects "Nessun default" (present-but-undefined).
+      if ('defaultDebitCashAssetId' in settings) {
+        docData.defaultDebitCashAssetId =
+          settings.defaultDebitCashAssetId !== undefined
+            ? settings.defaultDebitCashAssetId
+            : deleteField();
       }
-      if (settings.defaultCreditCashAssetId !== undefined) {
-        docData.defaultCreditCashAssetId = settings.defaultCreditCashAssetId;
+      if ('defaultCreditCashAssetId' in settings) {
+        docData.defaultCreditCashAssetId =
+          settings.defaultCreditCashAssetId !== undefined
+            ? settings.defaultCreditCashAssetId
+            : deleteField();
       }
       if (settings.stampDutyEnabled !== undefined) {
         docData.stampDutyEnabled = settings.stampDutyEnabled;

@@ -322,6 +322,7 @@ export function ExpenseTrackingTab({
         }
         const { deleteExpense } = await import('@/lib/services/expenseService');
         await deleteExpense(expense.id);
+        if (user) queryClient.invalidateQueries({ queryKey: queryKeys.costCenters.all(user.uid) });
         toast.success('Voce eliminata con successo');
         await onRefresh();
       } catch (error) {
@@ -382,6 +383,7 @@ export function ExpenseTrackingTab({
       }
       const { deleteRecurringExpenses } = await import('@/lib/services/expenseService');
       await deleteRecurringExpenses(recurringParentId);
+      if (user) queryClient.invalidateQueries({ queryKey: queryKeys.costCenters.all(user.uid) });
       toast.success('Tutte le voci ricorrenti sono state eliminate');
       await onRefresh();
     } catch (error) {
@@ -404,6 +406,7 @@ export function ExpenseTrackingTab({
       }
       const { deleteInstallmentExpenses } = await import('@/lib/services/expenseService');
       await deleteInstallmentExpenses(installmentParentId);
+      if (user) queryClient.invalidateQueries({ queryKey: queryKeys.costCenters.all(user.uid) });
       toast.success('Tutte le rate sono state eliminate');
       await onRefresh();
     } catch (error) {

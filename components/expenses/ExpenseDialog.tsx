@@ -1313,6 +1313,12 @@ export function ExpenseDialog({ open, onClose, expense, onSuccess }: Readonly<Ex
         }
       }
 
+      // Refresh the Cost Centers tab: its spend stats are derived from expenses,
+      // so any create/edit (including adding, changing, or clearing a cost center)
+      // must invalidate the shared ['cost-centers', userId] cache. Always fired —
+      // an edit may move a transaction out of a center just as easily as into one.
+      queryClient.invalidateQueries({ queryKey: queryKeys.costCenters.all(user.uid) });
+
       onSuccess?.();
       onClose();
     } catch (error) {

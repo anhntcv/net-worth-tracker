@@ -24,6 +24,8 @@
 - Fixed: a transfer between two accounts now updates both account balances together — the origin debit and destination credit are applied as a single atomic operation, so a network hiccup can no longer leave one account updated and the other not
 - Fixed: large amounts (e.g. full-year totals) no longer spill past the edges of the Cashflow summary cards — the value text now scales to fit its card
 - Fixed: the category filter inside the Cashflow filters panel could not be scrolled on tablets — the full category list is now reachable
+- Fixed: clearing a default cash account in Settings (selecting "Nessun default" for the withdrawal or deposit account) now actually saves — previously the old account was silently kept on reload, so the default could never be removed once set
+- Fixed: the Cost Centers tab now updates immediately when you add, edit, or delete an expense linked to a cost center — the per-center totals and transaction counts refresh on the spot instead of requiring a full page reload
 
 ## 🔧 Improvements
 
