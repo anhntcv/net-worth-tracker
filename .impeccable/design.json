@@ -97,15 +97,17 @@
     }
   ],
   "narrative": {
-    "northStar": "The Precision Instrument",
-    "overview": "This system is built for one purpose: total clarity about your financial position. Every element earns its place by communicating a number, a trend, or a relationship. The aesthetic is Linear/Vercel clarity pushed further — not a design exercise, but an instrument. The default palette is achromatic by conviction. Color belongs to the data.\n\nDark mode is the primary experience. An Italian investor reviewing portfolio performance at their desk, evening light off, monitor close, expects precision: sharp contrasts, monospaced figures, no visual noise competing with numbers that represent years of work.\n\nThe five named color themes (Solar Dusk, Elegant Luxury, Midnight Bloom, Cyberpunk, Retro Arcade) are personality layers on top of a structural foundation. The default theme is the instrument in its raw state. The themes are its finishes.",
+    "northStar": "Effortless Precision",
+    "overview": "This system is built for one purpose: total clarity about your financial position. The design ambition is to be the Apple of personal finance trackers — not the most feature-rich instrument, but the one that makes you immediately understand your financial situation, beautifully and effortlessly. Every element earns its place by communicating a number, a trend, or a relationship. The aesthetic draws from three co-primary references: Linear/Vercel clarity, Trade Republic data hierarchy, and Apple's effortless premium.\n\nBoth dark and light modes are equally premium experiences. The default palette is achromatic by conviction — color belongs to the data, not the chrome.\n\nThe five named color themes (Solar Dusk, Elegant Luxury, Midnight Bloom, Cyberpunk, Retro Arcade) are personality layers on top of a structural foundation. The default theme is the instrument in its raw state. The themes are its finishes.",
     "keyCharacteristics": [
       "Achromatic structural palette; data colors carry all chromatic meaning in the default theme",
       "Geist Sans for interface text, Geist Mono for every number that matters",
-      "Radius is tight: 8px (inputs, buttons), 14px (cards)",
+      "Radius is refined: 10px (inputs, buttons), 16px (cards) — premium curve without losing authority",
       "Elevation is ambient: surfaces layer through background steps, shadows are atmospheric whispers",
       "Motion is physics-native: spring dialogs, ease-out-quart state transitions, circle-reveal theme toggle",
-      "Density is intentional — power-user tool; information is not hidden without reason"
+      "Density is intentional — but legibility comes first; whitespace is a design material, not wasted space",
+      "Progressive disclosure — the essential at a glance, depth on interaction; the interface recedes so numbers speak",
+      "Light and dark modes are equally premium — different materials, same quality standard"
     ],
     "rules": [
       { "name": "The Zero-Chroma Rule",   "body": "The default surface palette has no hue. Adding a brand color to buttons, cards, or navigation in the default theme is forbidden. Color is earned by data, not decoration.", "section": "colors" },
@@ -134,7 +136,8 @@
       "Don't use side-stripe borders (colored border-left > 1px as a card accent).",
       "Don't use glassmorphism decoratively.",
       "Don't use proportional figures for financial numbers in tabular contexts.",
-      "Don't apply Float shadow to in-document cards."
+      "Don't apply Float shadow to in-document cards.",
+      "Don't design UI that demonstrates how complex the domain is. Complexity should be hidden behind a calm, premium surface — the interface should feel simpler than the data it presents."
     ]
   }
 }

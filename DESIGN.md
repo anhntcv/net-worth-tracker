@@ -118,31 +118,34 @@ components:
 
 ## 1. Overview
 
-**Creative North Star: "The Precision Instrument"**
+**Creative North Star: "Effortless Precision"**
 
-This system is built for one purpose: total clarity about your financial position. Every element earns its place by communicating a number, a trend, or a relationship. The aesthetic draws from two co-primary references: Linear/Vercel clarity and Trade Republic hierarchy. Neither is secondary.
+This system is built for one purpose: total clarity about your financial position. The design ambition is to be the Apple of personal finance trackers — not the most feature-rich instrument, but the one that makes you immediately understand your financial situation, beautifully and effortlessly. Every element earns its place by communicating a number, a trend, or a relationship. The aesthetic draws from three co-primary references: Linear/Vercel clarity, Trade Republic data hierarchy, and Apple's effortless premium.
 
 **Linear / Vercel** provides the structural foundation: tight geometry, achromatic palette, strong typography, physics-native motion, zero decorative chrome.
 
 **Trade Republic** provides the data hierarchy: the primary number dominates physically and visually. Layout flows vertically — dominant value → inline variation chip → small label metadata. Flat `divide-y` lists instead of card-within-card nesting. No decorative progress bars. No box-within-box. Visual chrome is reduced to its structural minimum: only what separates, never what decorates.
 
-The two references are compatible. Both share dark mode as a premium experience, typography as structure, and zero tolerance for decoration that doesn't carry information.
+**Apple (Stocks, Wallet, Health)** provides the quality benchmark: complex data made effortlessly readable. Generous whitespace as a design material — not wasted space, but earned breathing room. Light mode equally premium to dark. Surfaces that feel considered and valuable. Progressive disclosure: the essential at a glance, depth on interaction. The interface recedes so the numbers speak.
 
-Dark mode is the primary experience. An Italian investor reviewing portfolio performance at their desk, evening light off, monitor close, expects precision: sharp contrasts, monospaced figures, no visual noise competing with numbers that represent years of work. Light mode is fully supported and equally refined, but the design intent was formed in darkness.
+The three references are compatible. All share zero tolerance for decoration that doesn't carry information, strong typography as structure, and the conviction that simplicity is harder to achieve than complexity.
+
+Both dark and light modes are primary, equally refined experiences. An Italian investor reviewing portfolio performance deserves precision and premium quality regardless of their environment or preference.
 
 The five named color themes (Solar Dusk, Elegant Luxury, Midnight Bloom, Cyberpunk, Retro Arcade) are personality layers on top of a structural foundation. They change accent and surface palette without touching the underlying type scale, radius, or component API. The default theme is the instrument in its raw state. The themes are its finishes.
 
-This system explicitly rejects three aesthetic modes: Bloomberg terminal coldness (too dense and impersonal for a personal wealth journal), consumer fintech brightness (Revolut-style gradients and playful fills trivialize serious data), and Material Design genericism (component conventions that serve any app therefore serve this one poorly).
+This system explicitly rejects four aesthetic modes: Bloomberg terminal coldness (too dense and impersonal for a personal wealth journal), consumer fintech brightness (Revolut-style gradients and playful fills trivialize serious data), Material Design genericism (component conventions that serve any app therefore serve this one poorly), and **ostentated complexity** (UI that demonstrates how hard the domain is rather than hiding that complexity behind a calm surface).
 
 **Key Characteristics:**
 - Achromatic structural palette; data colors carry all chromatic meaning in the default theme
 - Geist Sans for interface text, Geist Mono for every number that matters
-- Radius is tight: 8px (inputs, buttons), 14px (cards) — never pill-shaped for containers
+- Radius is refined: 10px (inputs, buttons), 16px (cards) — premium curve without losing authority
 - Elevation is ambient: surfaces layer through background steps, shadows are atmospheric whispers
 - Motion is physics-native: spring dialogs, ease-out-quart state transitions, circle-reveal theme toggle
 - Hierarchy is Trade Republic-style: one dominant value per section, everything else is context
 - Chrome reduction is deliberate: flat lists over nested cards, divide-y over borders-on-boxes
 - Mobile-first: layouts are designed at 390px first; desktop adds columns, never simplifies
+- Light and dark modes are equally premium — different materials, same quality standard
 
 ## 2. Colors: The Zero-Chroma Foundation
 
