@@ -88,6 +88,7 @@ Net Worth Tracker is a Next.js app for Italian investors to track net worth, ass
 - Portfolio exposure: `types/exposure.ts`, `lib/server/portfolioExposureService.ts`, `app/api/portfolio/exposure/route.ts`, `lib/hooks/usePortfolioExposure.ts`, `components/allocation/ExposureSection.tsx`, `exposure-cache/{userId}` (Firestore per-user cache), `docs/justetf-exposure-v2-spec.md` (v2 spec for country + currency)
 - Assets: `app/dashboard/assets/page.tsx`, `components/assets/AssetPriceHistoryTable.tsx`, `components/assets/AssetClassHistoryTable.tsx`
 - Shared layout: `components/layout/PageContainer.tsx`, `components/layout/PageHeader.tsx`, `components/layout/PageTabBar.tsx`, `components/layout/PageTabs.tsx`, `components/layout/ThemePicker.tsx`
+- Responsive modals: `components/ui/responsive-modal.tsx` (`ResponsiveModal` — Dialog on desktop ↔ vaul bottom-sheet Drawer on mobile ≤768px; preferred abstraction for new/redesigned form modals — see AGENTS.md "Responsive Modals"; adopted by `ExpenseDialog`, `CategoryManagementDialog`)
 - Navigation constants: `lib/constants/navigation.ts` (single source for `primaryNav`, `analysisNav`, `planningNav`, `secondaryHrefs`)
 - Mobile navigation: `components/layout/BottomNavigation.tsx`, `components/layout/SecondaryMenuDrawer.tsx`
 - Mobile perf: `lib/hooks/useMediaQuery.ts`

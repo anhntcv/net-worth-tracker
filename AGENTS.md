@@ -74,6 +74,11 @@ For architecture and current product status, see [CLAUDE.md](CLAUDE.md).
 - Use `ssr: false` for client-only dialogs and panels
 - Pass the props type parameter to preserve type safety
 
+### Responsive Modals (`ResponsiveModal`)
+- **Prefer `ResponsiveModal` for form-style modals**: `components/ui/responsive-modal.tsx` renders a centered `Dialog` on desktop and a vaul bottom-sheet `Drawer` on mobile (≤768px) from one API (`open`/`onClose`/`title`/`description`/`headerExtra`/`children`/`footer`/`dialogClassName`). When creating or redesigning a modal, prefer it over hand-rolling the `useMediaQuery` + Dialog/Drawer split — it is the **convergence target** so the app's modals behave uniformly across devices. Currently adopted by `ExpenseDialog` and `CategoryManagementDialog`.
+- **Caveats (not a universal drop-in)**: default width is `max-w-4xl` — override via `dialogClassName` (too wide for small confirms); the caller resolves footer button layout per breakpoint (the `footer` slot takes a plain `ReactNode` — split it with `useMediaQuery` yourself if desktop/mobile differ); small confirm/alert dialogs (`LogoutDialog`, delete confirms) and specialized flows (e.g. `AssetDialog` 2-step) may stay a plain `Dialog`.
+- `DialogDescription`/`DrawerDescription` is handled internally (falls back to the string value of `title`) — you do not need to add it manually when using `ResponsiveModal`. See the description-required note below for plain `Dialog`/`Drawer` usage.
+
 ### Dialog Form Reset Pattern
 - Dialog `useEffect` that resets form state must include `open` in its dependency array — without it, reopening the dialog for a second creation (where the guarding prop, e.g. `asset`, stays `null` between opens) leaves the effect's deps unchanged and the effect never re-fires, so stale field values persist.
 - Guard the top of the effect with `if (!open) return` — prevents a spurious reset when the dialog closes (open transitions `true → false`).

@@ -13,12 +13,18 @@ dei P0/P1 emersi da una critique, o come verifica standalone su assi specifici.
 Audit = compliance pass/fail su assi precisi. Critique = valutazione olistica con score.
 Audit è più veloce, non produce score, non sostituisce la critique di verifica finale.
 
-**Assi di compliance per questo progetto:**
-- **Token** — nessun `bg-gray-*`, `text-gray-*`, `dark:bg-*`, hex hardcoded; usa CSS vars
+**Assi di compliance per questo progetto** (fonte canonica: `DESIGN.md` — leggila sempre):
+- **Form Follows Function** — ogni proprietà visiva (size, weight, color, radius, motion) deriva
+  da una funzione; niente decorazione, niente false depth/material (onestà), chrome che deferisce al dato
+- **Token / Zero-Chroma** — nessun `bg-gray-*`, `text-gray-*`, `dark:bg-*`, hex hardcoded; usa CSS vars
+  (OKLCH-native); chrome achromatica, il colore lo possiede il dato (Data Owns Color)
 - **Chart colors** — tutte le serie Recharts via `useChartColors()`; tooltip via CSS vars
   (`var(--card)` bg, `var(--card-foreground)` label); nessun hex o `fill="currentColor"` diretto
-- **Gerarchia Trade Republic** — hero block presente (`text-4xl font-bold font-mono`),
+- **Gerarchia Trade Republic** — hero block con la scala corretta: page hero
+  `text-[44px] desktop:text-[54px] font-bold font-mono tracking-[-0.03em]`, section hero `text-[36px]`,
+  sub-hero `text-[22px]` (**mai** `text-4xl`/`text-2xl` per un hero); un numero dominante per sezione,
   `divide-y` flat rows, nessun card-in-card, nessun side-stripe border
+- **Mono Mandate** — ogni numero (€, %, ratio, data strutturata) in Geist Mono con `tabular-nums`
 - **Breakpoint** — `md:` → `desktop:` (≥ 1440px); `sm:` solo dove corretto;
   `max-desktop:portrait:pb-20` su pagine con bottom nav; `landscape:` per casi specifici
 - **Motion** — `useReducedMotion()` o `MotionConfig reducedMotion="user"` attivo;
@@ -57,6 +63,7 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi):
 - Altro: pattern anomali o violazioni non elencate sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -83,6 +90,7 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi):
 - Altro: pattern anomali o violazioni non elencate sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -113,6 +121,7 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi):
 - Altro: pattern anomali o violazioni non elencate sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -134,6 +143,7 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi):
 - Altro: pattern anomali o violazioni non elencate sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -159,6 +169,7 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi):
 - Altro: pattern anomali o violazioni non elencate sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -182,6 +193,7 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi):
 - Altro: pattern anomali o violazioni non elencate sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -214,6 +226,7 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi):
 - Altro: pattern anomali o violazioni non elencate sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -251,6 +264,7 @@ La pagina è una singola scroll — nessun tab. Assi da verificare (minimum — 
 - Altro: pattern anomali o violazioni non elencate sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -276,7 +290,7 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi):
 - Token: calendario (day active, day hover, today highlight) — nessun hardcoded;
   DividendStats cards — nessun `bg-blue-*` o simili; badge tipo dividendo via CSS var
 - Chart colors: eventuali grafici in DividendStats via `useChartColors()`
-- Gerarchia: hero YOC/totale dividendi presente e `text-4xl font-bold font-mono`?
+- Gerarchia: hero YOC/totale dividendi presente con la scala corretta (`text-[44px] desktop:text-[54px] font-bold font-mono`)?
   (se assente è P1 per la critique, non per questo audit)
 - Breakpoint: calendario non overflow su 375px; DividendTable scroll orizzontale su mobile
 - ARIA: calendario con `aria-label` sui giorni, `aria-selected` sul giorno attivo;
@@ -284,6 +298,7 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi):
 - Altro: pattern anomali o violazioni non elencate sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -309,6 +324,7 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi):
 - Altro: pattern anomali o violazioni non elencate sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -330,6 +346,7 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi):
 - Altro: pattern anomali o violazioni non elencate sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -353,6 +370,7 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi):
 - Altro: pattern anomali o violazioni non elencate sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -384,6 +402,7 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi):
 - Altro: pattern anomali o violazioni non elencate sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -410,6 +429,7 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi):
 - Altro: pattern anomali o violazioni non elencate sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -437,6 +457,7 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi):
 - Altro: pattern anomali o violazioni non elencate sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -462,6 +483,7 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi):
 - Altro: pattern anomali o violazioni non elencate sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -479,7 +501,7 @@ Componenti: components/hall-of-fame/*,
 
 Assi da verificare (minimum — segnala anche eventuali altri problemi):
 - Token: hero block, SpotlightCard divide-y rows, period/category pill — nessun hardcoded
-- Gerarchia: hero valore `text-4xl font-bold font-mono` presente
+- Gerarchia: hero valore con la scala corretta (`text-[44px] desktop:text-[54px] font-bold font-mono`) presente
 - ARIA: mobile three-section nav pill `role="tablist"`; collapsible "Vedi tutti"
   `aria-expanded`; tabelle con `<th scope="col">`
 - Breakpoint: tabelle full-height desktop (nessun `max-h` con doppio scroll);
@@ -488,6 +510,7 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi):
 - Altro: pattern anomali o violazioni non elencate sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -518,6 +541,7 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi):
 - Altro: pattern anomali o violazioni non elencate sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -542,6 +566,7 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi):
 - Altro: pattern anomali o violazioni non elencate sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -577,6 +602,7 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi):
 - Altro: pattern anomali o violazioni non elencate sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -605,6 +631,7 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi):
 - Altro: pattern anomali o violazioni non elencate sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -632,6 +659,7 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi):
 - Altro: pattern anomali o violazioni non elencate sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -662,6 +690,7 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi):
 - Altro: pattern anomali o violazioni non elencate sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -690,6 +719,7 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi):
 - Altro: pattern anomali o violazioni non elencate sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -730,6 +760,7 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi — coere
 - Altro: inconsistenze cross-pagina o pattern di shell non previsti dagli assi sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -767,6 +798,7 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi — coere
 - Altro: inconsistenze cross-dialog o pattern non previsti dagli assi sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -791,12 +823,13 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi — coere
 - Isomorfismo strutturale: ogni skeleton rispecchia il layout reale? Stessa altezza
   dei blocchi hero, stessa struttura delle righe flat
 - Token: tutti i blocchi skeleton usano `bg-muted animate-pulse` — nessun `bg-gray-*`
-- Hero block: tutti gli skeleton con hero hanno un blocco `h-10` o `h-12` in testa
-  che corrisponde al `text-4xl` del layout reale
+- Hero block: tutti gli skeleton con hero hanno un blocco `h-12`/`h-14` in testa che
+  corrisponde alla scala del page hero reale (`text-[44px] desktop:text-[54px]`)
 - Coerenza: stessa `rounded-*`, stesso gap tra blocchi in tutti gli skeleton
 - Altro: skeleton mancanti, disallineamenti strutturali o inconsistenze non elencate sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
@@ -825,6 +858,53 @@ Assi da verificare (minimum — segnala anche eventuali altri problemi):
 - Altro: anomalie nel sistema di token non coperte dagli assi sopra
 
 Contesto:
+- Leggi DESIGN.md (fonte canonica del design system — North Star, Form Follows Function, scala tipografica, Mono Mandate, Zero-Chroma)
+- Leggi AGENTS.md (pattern, convenzioni, gotcha)
+- Leggi CLAUDE.md (stato corrente, known issues)
+```
+
+---
+
+## Email Periodiche
+
+> **Medium diverso.** L'audit standard verifica token / chart colors / breakpoint `desktop:` /
+> ARIA `tablist` / Framer Motion — assi che NON esistono in un'email HTML. Qui gli assi sono
+> propri del medium (vedi sotto). Verifica solo il piano **visivo/resa**; il piano **funzionale**
+> (correttezza confronti, baseline, boundary periodi) è `/code-review` + Vitest, non audit impeccable.
+
+```
+/impeccable audit l'email periodica (riepilogo mensile / trimestrale / semestrale / annuale)
+
+PRE-STEP — renderizza l'HTML prima di auditare (vedi critique): genera l'output di
+`buildEmailHtml` (manual test-send o file `.html`) e aprilo in light/dark, desktop/mobile.
+
+File: lib/server/monthlyEmailService.ts
+      (buildEmailHtml, simpleMarkdownToHtml, buildComparisonSectionHtml, comparisonCell)
+Contesto logico (non visivo): lib/server/emailPeriodComparison.ts,
+      app/api/user/monthly-email/send/route.ts (render di test)
+
+Assi da verificare (minimum — propri del medium email, NON gli assi del dashboard):
+- Inline-CSS only: tutto lo styling è inline o in `<style>` whitelisted — gli hex hardcoded
+  qui sono CORRETTI (i client non supportano CSS vars/token); NON segnalarli come violazione.
+- Table-layout: struttura a `<table>`/`<td>`, larghezza max 600px centrata — non flex/grid.
+- Mono sui numeri: patrimonio, %, € usano stack `'Geist Mono', ui-monospace, monospace`;
+  tabella Confronti con allineamento tabellare (numeri a destra, colonne che leggono come colonne).
+- Gerarchia: UN numero dominante (patrimonio netto) con eyebrow label; nessun numero secondario
+  di pari peso; chrome achromatica con colore riservato ai delta sign-aware.
+- Delta sign-semantics: verde positivo / rosso negativo, INVERTITO sulle Uscite (un +% di spesa
+  è rosso); `comparisonCell` rispetta `higherIsBetter` per metrica.
+- Markdown→HTML: simpleMarkdownToHtml rende le 5 sezioni del commento AI (heading, ol/ul,
+  grassetti) senza `<br>` orfani, senza `<p>` vuoti, spacing coerente.
+- Fallback: celle "N/D" pulite su baseline mancante; `previousEqualsYoy` (yearly) → colonna singola.
+- Dark mode: presenza/assenza di `<meta name="color-scheme">` + `@media (prefers-color-scheme: dark)`
+  (oggi assenti → light-only su `#ffffff` fisso; segnala come gap, non come pass/fail bloccante).
+- Mobile: tabella Confronti non deborda a 320–375px; body ≥ 14px; singola colonna leggibile.
+- Compat client: nessuna proprietà CSS non supportata da Gmail web/app, Apple Mail, Outlook.
+- Accessibilità: `lang="it"`, header tabella semantici, contrasto AA del grigio su sfondo.
+- Altro: pattern anomali o violazioni non elencate sopra.
+
+Contesto:
+- Leggi DESIGN.md (Mono Mandate, Zero-Chroma, Form Follows Function)
 - Leggi AGENTS.md (pattern, convenzioni, gotcha)
 - Leggi CLAUDE.md (stato corrente, known issues)
 ```
