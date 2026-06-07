@@ -54,6 +54,7 @@
 - Fixed: the Conversations and Memory lists in the AI Assistant could not be scrolled on desktop — their content is now fully reachable (both now open as side panels from the header on every screen size)
 - Fixed: positive and negative figures in the AI Assistant's context card used fixed green/red that didn't match non-default themes (e.g. orange for negatives in Cyberpunk) — they now use each theme's own positive/negative colors
 - Fixed: budgets could appear to vanish after a page refresh — the budget list now loads reliably even before your categories have finished loading, so your saved budgets always show up
+- Fixed: the "Ottimo risparmio" celebration badge on the Overview (shown when last month's savings rate was high) stayed pinned on screen until you manually refreshed the page — it now reliably disappears on its own after a few seconds, and a new close button lets you dismiss it instantly
 
 ## 🔧 Improvements
 
@@ -142,3 +143,4 @@
 - **Budget forecasts are smarter early in the month** — instead of blindly extrapolating a big purchase made on day 3 into a huge month-end projection, the forecast now blends your current pace with your usual spending and waits a few days before flagging anything as "at risk". The insights comparison also measures your spend against what you'd typically have reached by today, not against a whole month
 - **Overview gain/loss colors now follow your theme** — the net-worth variation chips and the unrealized-gains figure on the dashboard, plus the dashboard's cashflow KPIs, now use your selected theme's positive/negative colors instead of fixed green/red. A negative value shows in the theme's own color (e.g. orange in Cyberpunk) and stays consistent with the rest of the app across all six themes and dark mode
 - **Cleaner first-run Overview** — a brand-new account now sees a short "your breakdown will appear after the first asset" note in the dashboard summary card instead of a list of €0 rows ending in a "100,0%" total. Cost figures, labels, and headings on the card were also tightened (a single "Totale" line, consistent sizing) for a calmer, more uniform read
+- **Overview accessibility** — the mobile composition chart switcher (Asset Class / Per Asset) is now properly announced to screen readers as tabs controlling the chart below, and its buttons have larger, easier-to-tap targets. The hero net-worth trend line and the savings celebration badge also follow your selected color theme instead of fixed green/red, staying consistent across all six themes and dark mode
