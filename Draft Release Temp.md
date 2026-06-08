@@ -60,6 +60,8 @@
 
 ## 🔧 Improvements
 
+- **Clearer "by category" trend chart on the Analisi page** — the per-category chart in the "Andamento nel Tempo" (Storico) view no longer groups all the smaller categories into a single "Altro" line. That combined line was the sum of many categories and routinely towered over every real category, squashing the rest of the chart. It now shows only your top 6 categories by total, each as its own line, so the comparison between them is actually readable
+- **Tooltip rows now follow the lines** — hovering the per-category trend chart lists the categories from highest to lowest value at that point, matching the visual stacking of the lines, instead of a fixed order you had to map by hand
 - **Analisi period selector is centered on phones and tablets** — the Anno Corrente / Anno / Storico switcher (and its year/month picker) now sit centered when stacked on narrow screens, instead of clinging to the left edge with a large empty gap. On wide desktop screens it keeps the side-by-side layout with the picker on the right
 - **Dividends — delete confirmation is now inline**: deleting a dividend record no longer opens a browser confirmation dialog. Click "Delete" once to arm (the button turns red and shows "Conferma"), then click again within 3 seconds to confirm. Click anywhere else or wait 3 seconds to cancel. Consistent with the delete pattern used in Cashflow and Portfolio
 - **Dividends — "Download All" confirmation is now an in-app dialog**: the "Scarica Tutti (Manuale)" button now opens a styled confirmation dialog instead of a native browser alert, showing the number of assets that will be scraped before proceeding

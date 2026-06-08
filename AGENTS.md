@@ -568,6 +568,7 @@ For pages that aggregate large collections (many snapshots + all expenses) on ev
   <Tooltip contentStyle={TOOLTIP_CONTENT_STYLE} labelStyle={TOOLTIP_LABEL_STYLE} itemStyle={TOOLTIP_ITEM_STYLE} cursor={{ fill: 'var(--muted)', opacity: 0.4 }} />
   ```
   Define the three objects as module-level `as const` constants — avoids re-creating objects on every render and keeps usage sites clean. Applied in `ConfrontoAnnualeSection.tsx` (TOOLTIP_CONTENT_STYLE / TOOLTIP_LABEL_STYLE), `CostCenterDetail.tsx` (all three). Never use `color: '#111827'` in any of them — invisible in dark mode. The `#111827` bug was found and fixed in `BenchmarkComparisonChart.tsx` `labelStyle` (2026-05-29).
+- **`itemSorter` to order multi-series tooltip rows by value**: a multi-line chart's tooltip lists rows in fixed series order by default, which rarely matches the on-screen vertical stacking of the lines. Pass `itemSorter={(item) => -(item.value as number)}` to sort rows by value descending so the tooltip mirrors which line is highest at the hovered X (the order then shifts naturally where lines cross — that's the intent). Applied in `AndamentoStoricoSection.tsx` (per-category lines).
 
 ### `sticky` on `tfoot` inside a div-scroll wrapper
 - **Symptom**: the total/summary footer row overlaps the last visible data rows when a table is inside a scrollable `<div>` — the tfoot appears to float on top of content.
