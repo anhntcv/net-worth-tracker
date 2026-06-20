@@ -81,6 +81,7 @@
 - Fixed: budgets could appear to vanish after a page refresh — the budget list now loads reliably even before your categories have finished loading, so your saved budgets always show up
 - Fixed: the "Ottimo risparmio" celebration badge on the Overview (shown when last month's savings rate was high) stayed pinned on screen until you manually refreshed the page — it now reliably disappears on its own after a few seconds, and a new close button lets you dismiss it instantly
 - Fixed: gain/loss colors on the Portfolio (Patrimonio) page used fixed green/red that clashed with non-default themes (e.g. orange negatives in Cyberpunk). The net-worth variation chips, the unrealized G/P line, the asset table's G/P and performance deltas, and the mobile asset cards now all use each theme's own positive/negative colors across all six themes and dark mode
+- Fixed: in the Analisi page's "Anno Corrente" view, the "Andamento Risparmio" (monthly savings rate) and "Trend per Categoria" charts were also showing months from previous years instead of just the current year. Both charts now match the period you've selected — the current year in "Anno Corrente", the chosen past year in "Anno" (where they now appear; they were previously hidden), and the full history with the 12m/24m/Tutto window toggle only in "Storico"
 
 ## 🔧 Improvements
 
@@ -179,6 +180,7 @@
 - **Portfolio summary card is calmer** — the liquid-wealth summary card's heading now names the exact figure it shows ("Patrimonio Liquidabile Netto"), and the detailed "Impatto Fiscale" tax breakdown is collapsed by default, expandable with a tap
 - **"Andamento Strumenti Selezionati" now explains *why* a value moved** — on the Storico "Valore per Strumento" chart, hovering a month now shows the change versus the previous month split into "da prezzo" (market movement) and "da quantità" (your buys and sells). So when a holding's line drops, you can tell at a glance whether the market fell or you simply sold part of the position — instead of guessing
 - **Yield on Cost is now consistent and reflects your current cost** — the Rendimenti page and the Dividendi tab now compute YOC the same way: per-share, against your current average cost. Selling and rebuying an asset at a different price is now reflected in the yield, and buying more shares after a dividend no longer distorts it. Tooltips and the methodology guide make explicit that YOC and Current Yield consider only the assets you currently hold (dividends from sold assets stay in your dividend history as income received)
+- Improved: the "Andamento Risparmio" chart's 20% target line and below-target tint, and the "Trend per Categoria" hover highlight, now follow your selected color theme instead of fixed green, red, and gray — staying consistent across all six themes and dark mode
 
 ## 🔒 Security
 
