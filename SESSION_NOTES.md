@@ -29,13 +29,16 @@ Feedback utente: i pie chart sembrano "poco in linea" con la linea visiva dell'a
 - [x] `docs/pie-chart-redesign-spec.md` scritta (8 sezioni, 6 commit pianificati)
 - [x] Commit 1 — `CompositionList` primitive + `computeShadeOpacities` (con test)
 - [x] Commit 2 — Analisi: 5 pie → `CompositionList`, shading sottocategorie sanato
-- [ ] Commit 3 — Overview: pie compatti → `CompositionBar` + `LegendRow`
-- [ ] Commit 4 — Dividendi: pie per-payer → `CompositionList`
-- [ ] Commit 5 — Obiettivi: polish donut (legenda quadrata, tooltip, reduced-motion)
-- [ ] Commit 6 — cleanup codice morto
-- [ ] Aggiornamento documentazione (§9 spec)
-- [ ] Percorso manuale end-to-end (§8 spec)
+- [x] Commit 3 — Overview: pie compatti → `CompositionBar` + `LegendRow`
+- [x] Commit 4 — Dividendi: pie per-payer → `CompositionList`
+- [x] Commit 5 — Obiettivi: polish donut (legenda quadrata, tooltip, reduced-motion)
+- [x] Commit 6 — cleanup codice morto
+- [x] Aggiornamento documentazione (§9 spec: DESIGN.md, AGENTS.md, CLAUDE.md; critique-prompts.md/audit-prompts.md verificati — nessuna menzione pie da correggere)
+- [ ] Percorso manuale end-to-end (§8 spec) — da eseguire in browser, non fatto in questa sessione (nessun accesso a dev server interattivo)
 
 ## Scoperte non ovvie (implementazione)
 - `getSubcategoriesData` in `AnalisiTab.tsx` ora ritorna `color: ''` per riga — il colore reale (`selectedCategoryColor` + `barOpacity` da `computeShadeOpacities`) viene assegnato SOLO al render, in `subcategoryCompositionItems`. Il campo `color` di `ChartData` resta per compatibilità di tipo ma è ignorato in quel path.
 - `handleCategoryClick`/`handleSubcategoryClick` ora accettano `CompositionListItem` (non più `ChartData`) — la firma è cambiata perché `CompositionList.onItemClick` passa l'item già mappato.
+- `CompositionBar`'s Framer Motion `initial={{width:0}}` non richiede più il tracking `revealedCharts`/`animateOnMount` che serviva per Recharts: essendo lo stesso componente montato (stessa posizione JSX), i cambi di tab/dati sui dati Overview non fanno ripartire l'animazione di entrata — semplificazione trovata durante l'implementazione, non prevista esplicitamente dalla spec.
+- `prepareAssetClassDistributionData` (chartService.ts) ora porta anche la chiave `assetClass` grezza su ogni `PieChartData`, usata da `app/dashboard/page.tsx` per il remap via `ASSET_CLASS_CHART_INDEX` invece che per indice posizionale (§4.3 della spec) — `PieChartData.assetClass` è opzionale, non rompe gli altri consumer.
+- `docs/critique-prompts.md`/`docs/audit-prompts.md` non menzionano mai "pie"/"donut" esplicitamente (grep vuoto) — nessuna modifica necessaria lì, contrariamente a quanto la spec §9.4 ipotizzava.
