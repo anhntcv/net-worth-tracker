@@ -1,0 +1,41 @@
+# Session Notes — 2026-07-13 — Redesign pie chart (solo spec)
+
+## Obiettivo
+Feedback utente: i pie chart sembrano "poco in linea" con la linea visiva dell'app, troppo spazio libero su desktop. Sessione di sola analisi + specifica: **nessuna modifica al codice applicativo**. Deliverable: `docs/pie-chart-redesign-spec.md` (implementazione a carico di Sonnet 5; eventuale `/impeccable` dopo, come rifinitura).
+
+## Censimento (fatto)
+- **Analisi** (`AnalisiTab.tsx`): 5 pie con drill-down, card full-width alte 500px, cerchio ~280px in ~1200px → il colpevole principale del whitespace. Forma sbagliata per 8–12 voci.
+- **Overview** (`OverviewChartsSection.tsx` + `ui/pie-chart.tsx`): 2 pie compatti 160px.
+- **Dividendi** (`DividendTrackingTab.tsx`): 1 pie per-payer, parzialmente ridondante col leaderboard.
+- **Obiettivi** (`GoalAllocationPieChart.tsx`): unico donut giustificato (parte-sul-tutto, poche fette, active-slice + label centrale).
+- **Codice morto**: `CurrentYearTab.tsx` + `TotalHistoryTab.tsx` (0 importer, 11 pie legacy — fusi in `AnalisiTab`), ramo full-size di `ui/pie-chart.tsx` inutilizzato.
+
+## Decisioni (confermate dall'utente)
+1. Analisi → **barre orizzontali ordinate** cliccabili (drill-down = click sulla riga); nuovo primitivo `CompositionList` in `components/ui/`.
+2. Overview → **composition bar + righe** (estrazione del primitivo `CompositionBar` da `AllocationCompositionBar`).
+3. Dividendi → `CompositionList` senza click, `maxRows` 8.
+4. Obiettivi → resta donut, solo polish (legenda custom con swatch quadrati, `itemStyle` tooltip, gating reduced-motion).
+5. Cleanup codice morto come commit separato finale.
+6. Formato: spec tecnica pura (niente blocchi impeccable).
+
+## Scoperte non ovvie
+- **Bug latente**: in `AnalisiTab`, `deriveSubcategoryColors` fa parse hex ma `useChartColors()` restituisce oklch → fallback `#6366f1` sempre: le sottocategorie sono indaco fisso su ogni tema. La spec lo sana con `barOpacity` + pure util `computeShadeOpacities` (formato-indipendente).
+- Precedente interno pro-sostituzione: DESIGN.md documenta il donut Liquidità → righe piatte; `AllocationCompositionBar` nata come alternativa al pie.
+- Lo swatch legenda di `AllocationCompositionBar` è `rounded-full` ma DESIGN.md prescrive `rounded-[2px]`: la spec corregge nell'estrazione.
+
+## Stato
+- [x] Esplorazione + censimento (9 superfici)
+- [x] Decisioni di direzione con l'utente
+- [x] `docs/pie-chart-redesign-spec.md` scritta (8 sezioni, 6 commit pianificati)
+- [x] Commit 1 — `CompositionList` primitive + `computeShadeOpacities` (con test)
+- [x] Commit 2 — Analisi: 5 pie → `CompositionList`, shading sottocategorie sanato
+- [ ] Commit 3 — Overview: pie compatti → `CompositionBar` + `LegendRow`
+- [ ] Commit 4 — Dividendi: pie per-payer → `CompositionList`
+- [ ] Commit 5 — Obiettivi: polish donut (legenda quadrata, tooltip, reduced-motion)
+- [ ] Commit 6 — cleanup codice morto
+- [ ] Aggiornamento documentazione (§9 spec)
+- [ ] Percorso manuale end-to-end (§8 spec)
+
+## Scoperte non ovvie (implementazione)
+- `getSubcategoriesData` in `AnalisiTab.tsx` ora ritorna `color: ''` per riga — il colore reale (`selectedCategoryColor` + `barOpacity` da `computeShadeOpacities`) viene assegnato SOLO al render, in `subcategoryCompositionItems`. Il campo `color` di `ChartData` resta per compatibilità di tipo ma è ignorato in quel path.
+- `handleCategoryClick`/`handleSubcategoryClick` ora accettano `CompositionListItem` (non più `ChartData`) — la firma è cambiata perché `CompositionList.onItemClick` passa l'item già mappato.
