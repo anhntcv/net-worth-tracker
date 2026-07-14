@@ -8,7 +8,7 @@
 ![Vitest](https://img.shields.io/badge/Vitest-4-6E9F18?logo=vitest)
 ![License](https://img.shields.io/badge/License-AGPL--3.0-blue)
 
-## Description
+## Descriptiontst
 
 Net Worth Tracker is a full-featured personal finance application built for Italian investors. It provides comprehensive portfolio tracking, performance analytics, cashflow management, dividend monitoring, and long-term financial planning tools — all in a single dashboard.
 
