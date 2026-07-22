@@ -1,5 +1,10 @@
 # 02 — Derivation Engine (pure, tested)
 
+> Status: **IMPLEMENTED** (Fase A, 2026-07-22) — `lib/utils/assetTransactionUtils.ts` +
+> `__tests__/assetTransactionUtils.test.ts` (23-case matrix, 25 tests green; `tsc` clean).
+> The engine, `types/assetTransactions.ts`, and the `Asset.quantity`/`averageCost` pointer comments
+> now exist. Fasi B-D (rules/API/migration, UI, metric surfaces) remain unimplemented.
+
 New module **`lib/utils/assetTransactionUtils.ts`** + tests
 **`__tests__/assetTransactionUtils.test.ts`**.
 
