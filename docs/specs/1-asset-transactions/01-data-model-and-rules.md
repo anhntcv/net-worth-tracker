@@ -106,7 +106,7 @@ movements list and the metrics read trades with the client SDK).
 
 ```
 // Asset trade ledger: readable by owner/members, writable ONLY via the Admin API
-// (trade writes must atomically rewrite derived asset fields — see docs/specs/asset-transactions).
+// (trade writes must atomically rewrite derived asset fields — see docs/specs/1-asset-transactions).
 match /assetTransactions/{transactionId} {
   allow read: if canAccess(resource.data.userId);
   allow create, update, delete: if false;

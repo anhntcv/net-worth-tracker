@@ -273,9 +273,9 @@ Prompt da incollare in una nuova sessione:
 Implementa la FASE A della feature "Registro operazioni asset" di questo repo.
 
 Contesto obbligatorio — leggi TUTTO prima di scrivere codice:
-- docs/specs/asset-transactions/README.md (decisioni fissate, invarianti di sistema, istruzioni vincolanti)
-- docs/specs/asset-transactions/01-data-model-and-rules.md — §1 (tipi) e §7 (commenti puntatore)
-- docs/specs/asset-transactions/02-derivation-engine.md — INTEGRALE, è la spec di questa fase
+- docs/specs/1-asset-transactions/README.md (decisioni fissate, invarianti di sistema, istruzioni vincolanti)
+- docs/specs/1-asset-transactions/01-data-model-and-rules.md — §1 (tipi) e §7 (commenti puntatore)
+- docs/specs/1-asset-transactions/02-derivation-engine.md — INTEGRALE, è la spec di questa fase
 - AGENTS.md, CLAUDE.md; COMMENTS.md e DEVELOPMENT_GUIDELINES.md vanno APPLICATI mentre scrivi.
 
 Scope ESATTO (niente altro, niente scope creep):

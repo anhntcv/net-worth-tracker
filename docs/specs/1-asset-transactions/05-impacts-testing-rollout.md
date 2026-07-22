@@ -28,7 +28,7 @@ snapshots therefore keep working with zero changes.
 | `firestore.rules` | +2 match blocks | 01 §3 |
 | `lib/server/validation.ts` | +schemas | 01 §4 |
 | `lib/utils/assetTransactionUtils.ts` | new pure engine | 02 |
-| `lib/server/assetTransactionUseCase.ts`, `app/api/asset-transactions/*` (3 route files) | new | 03 §1-2, §4 |
+| `lib/server/assetTransactionUseCase.ts`, `app/api/1-asset-transactions/*` (3 route files) | new | 03 §1-2, §4 |
 | server FX helper (`resolveTradePriceEur`) | new | 01 §6 |
 | `lib/services/assetService.ts` | +`updateAssetMetadata` (nothing else changes; `updateAsset` untouched) | 03 §3 |
 | `lib/services/assetTransactionService.ts`, `lib/hooks/useAssetTransactions.ts`, `lib/query/queryKeys.ts` | new / +key group | 03 §5 |
@@ -109,9 +109,9 @@ Prerequisito verificabile: TransactionDialog e AssetMovementsDialog esistono e f
 (Fase C). Se mancano, fermati e dillo.
 
 Contesto obbligatorio — leggi TUTTO prima di scrivere codice:
-- docs/specs/asset-transactions/README.md
-- docs/specs/asset-transactions/04-ui.md — SOLO §5 e §6 (il resto è già implementato)
-- docs/specs/asset-transactions/05-impacts-testing-rollout.md — questa spec, integrale
+- docs/specs/1-asset-transactions/README.md
+- docs/specs/1-asset-transactions/04-ui.md — SOLO §5 e §6 (il resto è già implementato)
+- docs/specs/1-asset-transactions/05-impacts-testing-rollout.md — questa spec, integrale
 - AGENTS.md, in particolare: "Cross-Component Metric Consistency", "Cache Schema Evolution
   Without cacheKey Bump", "Performance Page (redesign 2026-06-20)", "Layout Tokens"
 - DESIGN.md per le superfici Rendimenti; COMMENTS.md e DEVELOPMENT_GUIDELINES.md applicati.

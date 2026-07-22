@@ -25,10 +25,10 @@ schemas from spec 01 §4. Error mapping via `getApiAuthErrorResponse`.
 
 | Route | Method | Purpose |
 | --- | --- | --- |
-| `app/api/asset-transactions/route.ts` | POST | create one trade (body: `{ userId, transaction: AssetTransactionFormData }`) |
-| `app/api/asset-transactions/[transactionId]/route.ts` | PUT | edit (body: `{ userId, updates }`) |
-| `app/api/asset-transactions/[transactionId]/route.ts` | DELETE | delete (`?userId=`) |
-| `app/api/asset-transactions/migrate/route.ts` | POST | idempotent one-shot migration (body: `{ userId }`) |
+| `app/api/1-asset-transactions/route.ts` | POST | create one trade (body: `{ userId, transaction: AssetTransactionFormData }`) |
+| `app/api/1-asset-transactions/[transactionId]/route.ts` | PUT | edit (body: `{ userId, updates }`) |
+| `app/api/1-asset-transactions/[transactionId]/route.ts` | DELETE | delete (`?userId=`) |
+| `app/api/1-asset-transactions/migrate/route.ts` | POST | idempotent one-shot migration (body: `{ userId }`) |
 
 Reads do NOT get a route: the client SDK reads `assetTransactions`/`assetTransactionsMeta`
 directly (rules allow it, spec 01 §3).
@@ -107,7 +107,7 @@ AssetDialog (edit mode, ledger asset types) switches to this function — spec 0
 survives unchanged for cash/realestate (and its 0→>0 `holdingStartDate` stamping keeps covering
 those non-ledger paths).
 
-## 4. Migration — `POST /api/asset-transactions/migrate`
+## 4. Migration — `POST /api/1-asset-transactions/migrate`
 
 Idempotent, per-user, server-side:
 
@@ -206,9 +206,9 @@ Prerequisito verificabile: esistono types/assetTransactions.ts e lib/utils/asset
 con la suite __tests__/assetTransactionUtils.test.ts verde (Fase A). Se mancano, fermati e dillo.
 
 Contesto obbligatorio — leggi TUTTO prima di scrivere codice:
-- docs/specs/asset-transactions/README.md (decisioni, invarianti, istruzioni vincolanti)
-- docs/specs/asset-transactions/01-data-model-and-rules.md — §2-§6 (collections, rules, zod, FX)
-- docs/specs/asset-transactions/03-service-and-api.md — INTEGRALE, è la spec di questa fase
+- docs/specs/1-asset-transactions/README.md (decisioni, invarianti, istruzioni vincolanti)
+- docs/specs/1-asset-transactions/01-data-model-and-rules.md — §2-§6 (collections, rules, zod, FX)
+- docs/specs/1-asset-transactions/03-service-and-api.md — INTEGRALE, è la spec di questa fase
 - AGENTS.md, in particolare: "Firestore runTransaction — All Reads Before All Writes",
   "Private API Authorization", "Server-side Input Validation (SEC-3)", "Firestore Optional Field
   Deletion", "Firestore Query Chain Depth in Tests"
