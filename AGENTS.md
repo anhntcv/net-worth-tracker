@@ -642,6 +642,13 @@ For pages that aggregate large collections (many snapshots + all expenses) on ev
 - **Metric sections are collapsed by default (`isAllMetricsOpen`).** The hero now carries the essentials, so the 4 `MetricSection`s live inside a "Mostra tutte le metriche" Collapsible. The per-card eyebrows (`Visualizzazione`/`Metriche Rolling`/`Analisi Drawdown`) were removed in favor of two cluster dividers ("Andamento"/"Rischio") above the charts.
 - **Header actions: module-level `HeaderActions`, rendered twice.** `PageHeader`'s mobile slot is a cramped inline row next to a truncating title, so three text buttons won't fit. The page passes `HeaderActions` to the desktop slot wrapped in `hidden desktop:flex` (mobile slot stays empty → no title truncation) AND renders a separate `desktop:hidden flex-col` full-width stacked bar below the header. `HeaderActions` is module-level (React Compiler: no component definitions inside render) taking handlers + flags as props.
 
+### Asset Trade Ledger — Derivation Engine (`lib/utils/assetTransactionUtils.ts`)
+- **The ledger is a pure, Firebase-free engine** (precedent: `allocationUtils.ts`) — importable by tests without mocking `@/lib/firebase/config`. ALL trade money-math (replay, PMC, realized P&L, XIRR, total return, invested capital) lives here; the service/route layer (Fase B+) stays a thin atomic writer. Types in `types/assetTransactions.ts` (`LEDGER_ASSET_TYPES` = stock/etf/bond/crypto/commodity; cash/realestate have no ledger). `AssetTransactionType` carries a checklist-comment: a new type must update the replay switch, the zod schema, AND `TransactionDialog`.
+- **Native PMC excludes fees; fees + FX live only on the EUR side (invariant #2).** `averageCost` is the weighted average of native `pricePerUnit`, no fees — exactly today's `Asset.averageCost` semantics, so every existing consumer keeps working. `costBasisEur`/`investedEur`/`realizedPnlEur` carry fees and the per-unit `priceEur`. A sell never moves the native PMC (regime amministrato); when the position closes, quantity and `costBasisEur` clamp to exactly 0 (float-dust `EPSILON = 1e-9`) while the last native PMC is retained (harmless — every consumer filters `quantity > 0`).
+- **The migration baseline (`isBaseline` BUY) NEVER stamps `holdingStartDate` (invariant #4).** `holdingStartDate` is set only on a real `<=0 → >0` transition at a NON-baseline trade. `replayTransactions` returning `holdingStartDate: undefined` means **leave the asset doc's value untouched** — the write path must never `deleteField()` it. Stamping the migration date there would zero out YOC for the whole existing portfolio (see the Dividends YOC holding-start scoping note above).
+- **Replay ordering is deterministic and internal.** `sortTransactionsForReplay` sorts by date → same-day rank (baseline < buy < sell < adjustment: a same-day buy must apply before a same-day sell or a valid sequence is wrongly rejected) → `createdAt` → `id`. Every function sorts internally. Invalid histories throw `LedgerValidationError` (`SELL_EXCEEDS_HOLDING` / `NEGATIVE_INPUT` / `BASELINE_NOT_FIRST`) with an Italian `userMessage` the route forwards verbatim in the 422 body; this same replay IS the route's pre-write validation (an edit/delete that makes a *later* sell over-sell is caught here, not just at the edited row).
+- **The per-asset XIRR (`buildXirrFlows`/`computeAssetXirr`) is date-exact and SEPARATE from `performanceService.calculateIRR`** (monthly-bucketed, snapshot-based) — keep both, they answer different questions. XIRR returns the ANNUALIZED rate as a FRACTION (×100 for display); `null` renders as "–", never 0. `adjustment` produces no XIRR flow and no `computeCashDelta` (splits are value-neutral) — so a quantity-correcting adjustment slightly distorts XIRR (accepted v1 limitation, commented in-code).
+
 ---
 
 ## Testing and Workflow
@@ -654,7 +661,7 @@ For pages that aggregate large collections (many snapshots + all expenses) on ev
   - Dividends/cron: `dividendUseCase` + `dividendProcessor` | Email: `monthlyEmailService`
   - Assets/bonds: `assetDialogHelpers` + `couponUtils` | Cashflow/Budget: `budgetUtils`
   - Transfers/cash balances: `cashBalanceReconciliation` + `updateCashAssetBalancesAtomic` + `transferFeature`
-  - Allocation: `allocationUtils`
+  - Allocation: `allocationUtils` | Asset trade ledger: `assetTransactionUtils`
 - For motion/perceived-performance changes, compare `npm run dev` vs `npm run build && npm run start` — dev can exaggerate cost
 
 ### Test Patterns
