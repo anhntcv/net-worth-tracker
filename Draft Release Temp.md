@@ -4,8 +4,13 @@
 - Added an all-time-high badge that appears next to your net worth when you reach a new peak.
 - Added a "driven by" summary on Overview showing which asset classes moved your net worth the most this month.
 - Added a featured progress indicator for your most relevant active goal (Goal-Based Investing) on the Overview page.
+- Added an operations register for your investments: from Patrimonio you can now record Buy, Sell, and Adjustment operations on each stock, ETF, bond, crypto, or commodity, with an optional settlement account whose balance updates automatically (net-worth-neutral).
+- Added a per-asset "Movimenti" view with your full operation history plus realized P&L, total return, and money-weighted return (XIRR) for that asset.
+- Added a live estimated realized-P&L preview when recording a sale, so you see the outcome before confirming.
 
 ## 🔧 Improvements
+
+- New investments are now recorded as an opening purchase in the operations register, and quantity and average cost for tracked investments are managed through it — so editing an investment can no longer accidentally overwrite its cost basis.
 
 - Overview now always shows a 12-month context line next to a negative monthly change, so a down month is never shown without the bigger picture.
 - Large net worth values on the Overview hero no longer risk overflowing on smaller screens.
